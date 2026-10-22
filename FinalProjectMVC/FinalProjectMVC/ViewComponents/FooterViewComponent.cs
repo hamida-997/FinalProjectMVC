@@ -7,12 +7,10 @@ namespace FinalProjectMVC.ViewComponents
     public class FooterViewComponent : ViewComponent
     {
         private readonly IApiService _apiService;
-        private readonly ILogger<FooterViewComponent> _logger;
 
-        public FooterViewComponent(IApiService apiService, ILogger<FooterViewComponent> logger)
+        public FooterViewComponent(IApiService apiService)
         {
             _apiService = apiService;
-            _logger = logger;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
@@ -21,15 +19,16 @@ namespace FinalProjectMVC.ViewComponents
 
             try
             {
+                // Fetch categories from API to show in footer
                 var categories = await _apiService.GetAsync<List<CategoryDto>>("api/categories");
                 if (categories != null)
                 {
                     model.Categories = categories.Where(c => c.IsActive).Take(5).ToList();
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error fetching categories for footer");
+                // Silently fail - footer will show default categories
             }
 
             return View(model);

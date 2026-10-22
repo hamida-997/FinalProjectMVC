@@ -7,12 +7,10 @@ namespace FinalProjectMVC.Controllers
     public class AuthController : Controller
     {
         private readonly IApiService _apiService;
-        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IApiService apiService, ILogger<AuthController> logger)
+        public AuthController(IApiService apiService)
         {
             _apiService = apiService;
-            _logger = logger;
         }
 
         [HttpGet]
@@ -60,9 +58,8 @@ namespace FinalProjectMVC.Controllers
                 TempData["SuccessMessage"] = "Registration successful! Welcome to Caramellize.";
                 return RedirectToAction("Index", "Home");
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error during registration");
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
                 return View(model);
             }
@@ -113,9 +110,8 @@ namespace FinalProjectMVC.Controllers
                 TempData["SuccessMessage"] = $"Welcome back, {response.User?.FirstName}!";
                 return RedirectToAction("Index", "Home");
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error during login");
                 ModelState.AddModelError(string.Empty, "An unexpected error occurred. Please try again.");
                 return View(model);
             }

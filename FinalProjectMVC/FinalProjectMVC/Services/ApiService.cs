@@ -6,13 +6,11 @@ namespace FinalProjectMVC.Services
     public class ApiService : IApiService
     {
         private readonly HttpClient _httpClient;
-        private readonly ILogger<ApiService> _logger;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public ApiService(HttpClient httpClient, ILogger<ApiService> logger)
+        public ApiService(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            _logger = logger;
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
@@ -29,9 +27,8 @@ namespace FinalProjectMVC.Services
                 var content = await response.Content.ReadAsStringAsync();
                 return JsonSerializer.Deserialize<T>(content, _jsonOptions);
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error calling GET {Endpoint}", endpoint);
                 return default;
             }
         }
@@ -49,9 +46,8 @@ namespace FinalProjectMVC.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
                 return JsonSerializer.Deserialize<T>(responseContent, _jsonOptions);
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error calling POST {Endpoint}", endpoint);
                 return default;
             }
         }
@@ -69,9 +65,8 @@ namespace FinalProjectMVC.Services
                 var responseContent = await response.Content.ReadAsStringAsync();
                 return JsonSerializer.Deserialize<T>(responseContent, _jsonOptions);
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error calling PUT {Endpoint}", endpoint);
                 return default;
             }
         }
@@ -83,9 +78,8 @@ namespace FinalProjectMVC.Services
                 var response = await _httpClient.DeleteAsync(endpoint);
                 return response.IsSuccessStatusCode;
             }
-            catch (Exception ex)
+            catch
             {
-                _logger.LogError(ex, "Error calling DELETE {Endpoint}", endpoint);
                 return false;
             }
         }
