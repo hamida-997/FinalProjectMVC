@@ -1,5 +1,5 @@
 using FinalProjectMVC.Models;
-using FinalProjectMVC.Services;
+using FinalProjectMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinalProjectMVC.ViewComponents

@@ -1,4 +1,5 @@
 using FinalProjectMVC.Services;
+using FinalProjectMVC.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,6 +23,9 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddHttpContextAccessor();
+
+// Register Application Services
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 

@@ -1,4 +1,4 @@
-namespace FinalProjectMVC.Services
+namespace FinalProjectMVC.Services.Interfaces
 {
     public interface IApiService
     {

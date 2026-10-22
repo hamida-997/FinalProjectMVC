@@ -1,23 +1,22 @@
 using FinalProjectMVC.Models;
-using FinalProjectMVC.Services;
+using FinalProjectMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinalProjectMVC.Controllers
 {
     public class AuthController : Controller
     {
-        private readonly IApiService _apiService;
+        private readonly IAuthService _authService;
 
-        public AuthController(IApiService apiService)
+        public AuthController(IAuthService authService)
         {
-            _apiService = apiService;
+            _authService = authService;
         }
 
         [HttpGet]
         public IActionResult Register()
         {
-            // Redirect if already logged in
-            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("AuthToken")))
+            if (_authService.IsAuthenticated())
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -35,7 +34,7 @@ namespace FinalProjectMVC.Controllers
 
             try
             {
-                var response = await _apiService.PostAsync<AuthResponseViewModel>("api/auth/Register", model);
+                var response = await _authService.RegisterAsync(model);
 
                 if (response == null)
                 {
@@ -47,12 +46,6 @@ namespace FinalProjectMVC.Controllers
                 {
                     ModelState.AddModelError(string.Empty, response.Message);
                     return View(model);
-                }
-
-                // Store token and user info in session
-                if (!string.IsNullOrEmpty(response.Token))
-                {
-                    SaveUserSession(response);
                 }
 
                 TempData["SuccessMessage"] = "Registration successful! Welcome to Caramellize.";
@@ -68,8 +61,7 @@ namespace FinalProjectMVC.Controllers
         [HttpGet]
         public IActionResult Login()
         {
-            // Redirect if already logged in
-            if (!string.IsNullOrEmpty(HttpContext.Session.GetString("AuthToken")))
+            if (_authService.IsAuthenticated())
             {
                 return RedirectToAction("Index", "Home");
             }
@@ -87,7 +79,7 @@ namespace FinalProjectMVC.Controllers
 
             try
             {
-                var response = await _apiService.PostAsync<AuthResponseViewModel>("api/auth/Login", model);
+                var response = await _authService.LoginAsync(model);
 
                 if (response == null)
                 {
@@ -99,12 +91,6 @@ namespace FinalProjectMVC.Controllers
                 {
                     ModelState.AddModelError(string.Empty, response.Message);
                     return View(model);
-                }
-
-                // Store token and user info in session
-                if (!string.IsNullOrEmpty(response.Token))
-                {
-                    SaveUserSession(response);
                 }
 
                 TempData["SuccessMessage"] = $"Welcome back, {response.User?.FirstName}!";
@@ -120,23 +106,9 @@ namespace FinalProjectMVC.Controllers
         [HttpGet]
         public IActionResult Logout()
         {
-            HttpContext.Session.Clear();
+            _authService.Logout();
             TempData["SuccessMessage"] = "You have been logged out successfully.";
             return RedirectToAction("Index", "Home");
-        }
-
-        private void SaveUserSession(AuthResponseViewModel response)
-        {
-            HttpContext.Session.SetString("AuthToken", response.Token ?? string.Empty);
-            HttpContext.Session.SetString("UserName", response.User?.UserName ?? string.Empty);
-            HttpContext.Session.SetString("UserEmail", response.User?.Email ?? string.Empty);
-            HttpContext.Session.SetString("UserFirstName", response.User?.FirstName ?? string.Empty);
-            HttpContext.Session.SetString("UserId", response.User?.Id ?? string.Empty);
-
-            if (response.ExpiresAt.HasValue)
-            {
-                HttpContext.Session.SetString("TokenExpiresAt", response.ExpiresAt.Value.ToString("O"));
-            }
         }
     }
 }
