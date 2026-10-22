@@ -1,0 +1,197 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Create Account";
+}
+
+<!-- Register Section -->
+<section class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="auth-card">
+                    <div class="row g-0">
+                        <!-- Left Side - Image/Branding -->
+                        <div class="col-lg-5 auth-brand-side d-none d-lg-flex">
+                            <div class="auth-brand-content">
+                                <div class="auth-brand-icon">
+                                    <i class="fas fa-birthday-cake"></i>
+                                </div>
+                                <h2>Join the Caramellize Family</h2>
+                                <p>Create your account to enjoy fresh baked goods delivered to your door, exclusive member discounts, and personalized recommendations.</p>
+                                
+                                <div class="auth-benefits">
+                                    <div class="auth-benefit-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Fast delivery to your doorstep</span>
+                                    </div>
+                                    <div class="auth-benefit-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Exclusive member discounts</span>
+                                    </div>
+                                    <div class="auth-benefit-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Order history & easy reorder</span>
+                                    </div>
+                                    <div class="auth-benefit-item">
+                                        <i class="fas fa-check-circle"></i>
+                                        <span>Early access to new products</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Side - Form -->
+                        <div class="col-lg-7">
+                            <div class="auth-form-side">
+                                <div class="auth-form-header">
+                                    <h3>Create Account</h3>
+                                    <p>Fill in your details to get started</p>
+                                </div>
+
+                                <form asp-action="Register" method="post" novalidate>
+                                    @Html.AntiForgeryToken()
+                                    
+                                    <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert" style="display: @(ViewData.ModelState.ErrorCount > 0 && !ViewData.ModelState.IsValid ? "block" : "none");"></div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-floating-custom">
+                                                <label asp-for="FirstName"></label>
+                                                <div class="input-with-icon">
+                                                    <i class="fas fa-user input-icon"></i>
+                                                    <input asp-for="FirstName" class="form-control auth-input" placeholder="John" />
+                                                </div>
+                                                <span asp-validation-for="FirstName" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating-custom">
+                                                <label asp-for="LastName"></label>
+                                                <div class="input-with-icon">
+                                                    <i class="fas fa-user input-icon"></i>
+                                                    <input asp-for="LastName" class="form-control auth-input" placeholder="Doe" />
+                                                </div>
+                                                <span asp-validation-for="LastName" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-floating-custom">
+                                        <label asp-for="UserName"></label>
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-at input-icon"></i>
+                                            <input asp-for="UserName" class="form-control auth-input" placeholder="johndoe" />
+                                        </div>
+                                        <span asp-validation-for="UserName" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-floating-custom">
+                                        <label asp-for="Email"></label>
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-envelope input-icon"></i>
+                                            <input asp-for="Email" class="form-control auth-input" placeholder="your@email.com" />
+                                        </div>
+                                        <span asp-validation-for="Email" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-floating-custom">
+                                        <label asp-for="PhoneNumber"></label>
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-phone input-icon"></i>
+                                            <input asp-for="PhoneNumber" class="form-control auth-input" placeholder="+1 234 567 8900" />
+                                        </div>
+                                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-floating-custom">
+                                        <label asp-for="Address"></label>
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-map-marker-alt input-icon"></i>
+                                            <input asp-for="Address" class="form-control auth-input" placeholder="123 Main Street, City" />
+                                        </div>
+                                        <span asp-validation-for="Address" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-floating-custom">
+                                                <label asp-for="Password"></label>
+                                                <div class="input-with-icon">
+                                                    <i class="fas fa-lock input-icon"></i>
+                                                    <input asp-for="Password" class="form-control auth-input" placeholder="••••••••" id="passwordInput" />
+                                                    <button type="button" class="password-toggle" onclick="togglePassword('passwordInput', this)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                                <span asp-validation-for="Password" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-floating-custom">
+                                                <label asp-for="ConfirmPassword"></label>
+                                                <div class="input-with-icon">
+                                                    <i class="fas fa-lock input-icon"></i>
+                                                    <input asp-for="ConfirmPassword" class="form-control auth-input" placeholder="••••••••" id="confirmPasswordInput" />
+                                                    <button type="button" class="password-toggle" onclick="togglePassword('confirmPasswordInput', this)">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                                <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="password-hint">
+                                        <i class="fas fa-info-circle"></i>
+                                        Password must be at least 6 characters with uppercase, lowercase, and a digit.
+                                    </div>
+
+                                    <div class="form-check-custom">
+                                        <input type="checkbox" id="terms" class="form-check-input" required />
+                                        <label for="terms" class="form-check-label">
+                                            I agree to the <a href="#" class="auth-link">Terms of Service</a> and <a href="#" class="auth-link">Privacy Policy</a>
+                                        </label>
+                                    </div>
+
+                                    <button type="submit" class="btn-auth-submit">
+                                        <i class="fas fa-user-plus"></i>
+                                        Create Account
+                                    </button>
+
+                                    <div class="auth-divider">
+                                        <span>Already have an account?</span>
+                                    </div>
+
+                                    <a asp-controller="Auth" asp-action="Login" class="btn-auth-secondary">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        Sign In
+                                    </a>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+}
