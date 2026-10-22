@@ -841,3 +841,62 @@ p {
         font-size: 1.6rem;
     }
 }
+
+
+/* ========== Login Specific Styles ========== */
+.login-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.forgot-link {
+    font-size: 0.9rem;
+}
+
+.form-check-custom.mb-0 {
+    margin-bottom: 0 !important;
+}
+
+/* Toast/Success Message */
+.success-toast {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: linear-gradient(135deg, #28A745, #20C997);
+    color: white;
+    padding: 15px 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(40, 167, 69, 0.3);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInRight 0.4s ease, fadeOut 0.4s ease 3s forwards;
+    max-width: 400px;
+}
+
+.success-toast i {
+    font-size: 1.3rem;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(500px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    to {
+        opacity: 0;
+        transform: translateX(500px);
+    }
+}

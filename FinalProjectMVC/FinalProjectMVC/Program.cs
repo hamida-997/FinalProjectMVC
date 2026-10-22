@@ -13,7 +13,6 @@ builder.Services.AddHttpClient<IApiService, ApiService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
-// Add Session support
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -26,7 +25,6 @@ builder.Services.AddHttpContextAccessor();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");

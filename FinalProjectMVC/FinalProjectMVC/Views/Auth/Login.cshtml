@@ -1,0 +1,135 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Sign In";
+}
+
+<!-- Login Section -->
+<section class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-9">
+                <div class="auth-card">
+                    <div class="row g-0">
+                        <!-- Left Side - Form -->
+                        <div class="col-lg-7 order-lg-1 order-2">
+                            <div class="auth-form-side">
+                                <div class="auth-form-header">
+                                    <h3>Welcome Back</h3>
+                                    <p>Sign in to your account to continue</p>
+                                </div>
+
+                                <form asp-action="Login" method="post" novalidate>
+                                    @Html.AntiForgeryToken()
+                                    
+                                    @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                                    {
+                                        <div class="alert-danger">
+                                            <i class="fas fa-exclamation-circle me-2"></i>
+                                            @foreach (var error in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+                                            {
+                                                <span>@error.ErrorMessage</span>
+                                            }
+                                        </div>
+                                    }
+
+                                    <div class="form-floating-custom">
+                                        <label asp-for="Email"></label>
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-envelope input-icon"></i>
+                                            <input asp-for="Email" class="form-control auth-input" placeholder="your@email.com" autofocus />
+                                        </div>
+                                        <span asp-validation-for="Email" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="form-floating-custom">
+                                        <label asp-for="Password"></label>
+                                        <div class="input-with-icon">
+                                            <i class="fas fa-lock input-icon"></i>
+                                            <input asp-for="Password" class="form-control auth-input" placeholder="••••••••" id="passwordInput" />
+                                            <button type="button" class="password-toggle" onclick="togglePassword('passwordInput', this)">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                        <span asp-validation-for="Password" class="text-danger"></span>
+                                    </div>
+
+                                    <div class="login-options">
+                                        <div class="form-check-custom mb-0">
+                                            <input asp-for="RememberMe" class="form-check-input" />
+                                            <label asp-for="RememberMe" class="form-check-label">Remember me</label>
+                                        </div>
+                                        <a href="#" class="auth-link forgot-link">Forgot password?</a>
+                                    </div>
+
+                                    <button type="submit" class="btn-auth-submit">
+                                        <i class="fas fa-sign-in-alt"></i>
+                                        Sign In
+                                    </button>
+
+                                    <div class="auth-divider">
+                                        <span>Don't have an account?</span>
+                                    </div>
+
+                                    <a asp-controller="Auth" asp-action="Register" class="btn-auth-secondary">
+                                        <i class="fas fa-user-plus"></i>
+                                        Create Account
+                                    </a>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right Side - Branding -->
+                        <div class="col-lg-5 order-lg-2 order-1 auth-brand-side d-none d-lg-flex">
+                            <div class="auth-brand-content">
+                                <div class="auth-brand-icon">
+                                    <i class="fas fa-cookie-bite"></i>
+                                </div>
+                                <h2>Welcome Back to Caramellize</h2>
+                                <p>Sign in to continue your sweet journey. Access your orders, favorite recipes, and exclusive member offers.</p>
+                                
+                                <div class="auth-benefits">
+                                    <div class="auth-benefit-item">
+                                        <i class="fas fa-shipping-fast"></i>
+                                        <span>Track your orders in real-time</span>
+                                    </div>
+                                    <div class="auth-benefit-item">
+                                        <i class="fas fa-heart"></i>
+                                        <span>Save your favorite products</span>
+                                    </div>
+                                    <div class="auth-benefit-item">
+                                        <i class="fas fa-gift"></i>
+                                        <span>Enjoy exclusive member rewards</span>
+                                    </div>
+                                    <div class="auth-benefit-item">
+                                        <i class="fas fa-bell"></i>
+                                        <span>Get notified of new products</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const icon = button.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+    </script>
+}
