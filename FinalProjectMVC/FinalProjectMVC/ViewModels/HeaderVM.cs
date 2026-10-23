@@ -1,6 +1,6 @@
-namespace FinalProjectMVC.Models
+namespace FinalProjectMVC.ViewModels
 {
-    public class HeaderViewModel
+    public class HeaderVM
     {
         public bool IsAuthenticated { get; set; }
         public string? UserName { get; set; }

@@ -1,15 +1,15 @@
-namespace FinalProjectMVC.Models
+namespace FinalProjectMVC.ViewModels
 {
-    public class AuthResponseViewModel
+    public class AuthResponseVM
     {
         public bool IsSuccess { get; set; }
         public string Message { get; set; } = string.Empty;
         public string? Token { get; set; }
         public DateTime? ExpiresAt { get; set; }
-        public UserInfoViewModel? User { get; set; }
+        public UserInfoVM? User { get; set; }
     }
 
-    public class UserInfoViewModel
+    public class UserInfoVM
     {
         public string Id { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;

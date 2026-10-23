@@ -1,4 +1,4 @@
-using FinalProjectMVC.Models;
+using FinalProjectMVC.ViewModels;
 using FinalProjectMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,12 +15,12 @@ namespace FinalProjectMVC.ViewComponents
 
         public async Task<IViewComponentResult> InvokeAsync()
         {
-            var model = new FooterViewModel();
+            var model = new FooterVM();
 
             try
             {
                 // Fetch categories from API to show in footer
-                var categories = await _apiService.GetAsync<List<CategoryDto>>("api/categories");
+                var categories = await _apiService.GetAsync<List<CategoryVM>>("api/categories");
                 if (categories != null)
                 {
                     model.Categories = categories.Where(c => c.IsActive).Take(5).ToList();

@@ -1,8 +1,8 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace FinalProjectMVC.Models
+namespace FinalProjectMVC.ViewModels
 {
-    public class RegisterViewModel
+    public class RegisterVM
     {
         [Required(ErrorMessage = "First name is required.")]
         [StringLength(50, MinimumLength = 2, ErrorMessage = "First name must be between 2 and 50 characters.")]

@@ -1,14 +1,14 @@
-using FinalProjectMVC.Models;
+using FinalProjectMVC.ViewModels;
 
 namespace FinalProjectMVC.Services.Interfaces
 {
     public interface IAuthService
     {
-        Task<AuthResponseViewModel?> RegisterAsync(RegisterViewModel model);
-        Task<AuthResponseViewModel?> LoginAsync(LoginViewModel model);
+        Task<AuthResponseVM?> RegisterAsync(RegisterVM model);
+        Task<AuthResponseVM?> LoginAsync(LoginVM model);
         void Logout();
         bool IsAuthenticated();
         string? GetToken();
-        UserInfoViewModel? GetCurrentUser();
+        UserInfoVM? GetCurrentUser();
     }
 }

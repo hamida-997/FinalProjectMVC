@@ -1,4 +1,4 @@
-using FinalProjectMVC.Models;
+using FinalProjectMVC.ViewModels;
 using FinalProjectMVC.Services.Interfaces;
 
 namespace FinalProjectMVC.Services
@@ -23,9 +23,9 @@ namespace FinalProjectMVC.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public async Task<AuthResponseViewModel?> RegisterAsync(RegisterViewModel model)
+        public async Task<AuthResponseVM?> RegisterAsync(RegisterVM model)
         {
-            var response = await _apiService.PostAsync<AuthResponseViewModel>("api/auth/Register", model);
+            var response = await _apiService.PostAsync<AuthResponseVM>("api/auth/Register", model);
 
             if (response != null && response.IsSuccess)
             {
@@ -35,9 +35,9 @@ namespace FinalProjectMVC.Services
             return response;
         }
 
-        public async Task<AuthResponseViewModel?> LoginAsync(LoginViewModel model)
+        public async Task<AuthResponseVM?> LoginAsync(LoginVM model)
         {
-            var response = await _apiService.PostAsync<AuthResponseViewModel>("api/auth/Login", model);
+            var response = await _apiService.PostAsync<AuthResponseVM>("api/auth/Login", model);
 
             if (response != null && response.IsSuccess)
             {
@@ -62,7 +62,7 @@ namespace FinalProjectMVC.Services
             return _httpContextAccessor.HttpContext?.Session.GetString(AuthTokenKey);
         }
 
-        public UserInfoViewModel? GetCurrentUser()
+        public UserInfoVM? GetCurrentUser()
         {
             var session = _httpContextAccessor.HttpContext?.Session;
             if (session == null || string.IsNullOrEmpty(session.GetString(AuthTokenKey)))
@@ -70,7 +70,7 @@ namespace FinalProjectMVC.Services
                 return null;
             }
 
-            return new UserInfoViewModel
+            return new UserInfoVM
             {
                 Id = session.GetString(UserIdKey) ?? string.Empty,
                 UserName = session.GetString(UserNameKey) ?? string.Empty,
@@ -80,7 +80,7 @@ namespace FinalProjectMVC.Services
             };
         }
 
-        private void SaveUserSession(AuthResponseViewModel response)
+        private void SaveUserSession(AuthResponseVM response)
         {
             var session = _httpContextAccessor.HttpContext?.Session;
             if (session == null || response.User == null) return;

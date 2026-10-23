@@ -1,4 +1,4 @@
-using FinalProjectMVC.Models;
+using FinalProjectMVC.ViewModels;
 using FinalProjectMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +25,7 @@ namespace FinalProjectMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Register(RegisterViewModel model)
+        public async Task<IActionResult> Register(RegisterVM model)
         {
             if (!ModelState.IsValid)
             {
@@ -70,7 +70,7 @@ namespace FinalProjectMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model)
+        public async Task<IActionResult> Login(LoginVM model)
         {
             if (!ModelState.IsValid)
             {

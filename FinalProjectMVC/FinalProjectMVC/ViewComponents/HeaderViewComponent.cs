@@ -1,4 +1,4 @@
-using FinalProjectMVC.Models;
+using FinalProjectMVC.ViewModels;
 using FinalProjectMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +17,7 @@ namespace FinalProjectMVC.ViewComponents
         {
             var currentUser = _authService.GetCurrentUser();
 
-            var model = new HeaderViewModel
+            var model = new HeaderVM
             {
                 IsAuthenticated = _authService.IsAuthenticated(),
                 UserName = currentUser?.UserName,

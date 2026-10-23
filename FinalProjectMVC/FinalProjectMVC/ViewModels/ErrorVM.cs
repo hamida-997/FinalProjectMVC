@@ -1,6 +1,6 @@
-namespace FinalProjectMVC.Models
+namespace FinalProjectMVC.ViewModels
 {
-    public class ErrorViewModel
+    public class ErrorVM
     {
         public string? RequestId { get; set; }
 
