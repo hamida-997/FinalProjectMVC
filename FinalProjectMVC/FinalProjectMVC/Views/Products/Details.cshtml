@@ -1,6 +1,7 @@
-@model ProductVM
+@model ProductDetailsVM
 @{
-    ViewData["Title"] = Model.Name;
+    ViewData["Title"] = Model.Product.Name;
+    var product = Model.Product;
 }
 
 <!-- Breadcrumb -->
@@ -13,11 +14,11 @@
             <i class="fas fa-chevron-right separator"></i>
             <a asp-controller="Products" asp-action="Index">Products</a>
             <i class="fas fa-chevron-right separator"></i>
-            <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@Model.CategoryId">
-                @Model.CategoryName
+            <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@product.CategoryId">
+                @product.CategoryName
             </a>
             <i class="fas fa-chevron-right separator"></i>
-            <span class="current">@Model.Name</span>
+            <span class="current">@product.Name</span>
         </nav>
     </div>
 </section>
@@ -30,9 +31,9 @@
             <div class="col-lg-6">
                 <div class="product-gallery">
                     <div class="main-image-wrapper">
-                        @if (Model.Images.Any())
+                        @if (product.Images.Any())
                         {
-                            <img id="mainProductImage" src="@Model.PrimaryImageUrl" alt="@Model.Name" class="main-image" />
+                            <img id="mainProductImage" src="@product.PrimaryImageUrl" alt="@product.Name" class="main-image" />
                         }
                         else
                         {
@@ -42,7 +43,7 @@
                         }
 
                         <div class="image-badges">
-                            @if ((DateTime.UtcNow - Model.CreatedAt).TotalDays <= 7)
+                            @if ((DateTime.UtcNow - product.CreatedAt).TotalDays <= 7)
                             {
                                 <span class="product-badge badge-new">New</span>
                             }
@@ -53,10 +54,10 @@
                         </button>
                     </div>
 
-                    @if (Model.Images.Count > 1)
+                    @if (product.Images.Count > 1)
                     {
                         <div class="thumbnail-list">
-                            @foreach (var image in Model.Images)
+                            @foreach (var image in product.Images)
                             {
                                 <div class="thumbnail @(image.IsPrimary ? "active" : "")" onclick="switchImage('@image.ImageUrl', this)">
                                     <img src="@image.ImageUrl" alt="Product image" />
@@ -70,8 +71,8 @@
             <!-- Product Info -->
             <div class="col-lg-6">
                 <div class="product-info-detail">
-                    <span class="product-category-tag">@Model.CategoryName</span>
-                    <h1 class="product-title">@Model.Name</h1>
+                    <span class="product-category-tag">@product.CategoryName</span>
+                    <h1 class="product-title">@product.Name</h1>
 
                     <!-- Rating -->
                     <div class="product-rating">
@@ -86,34 +87,34 @@
                     </div>
 
                     <!-- Short Description -->
-                    @if (!string.IsNullOrEmpty(Model.Description))
+                    @if (!string.IsNullOrEmpty(product.Description))
                     {
                         <p class="product-short-desc">
-                            @(Model.Description.Length > 150 ? Model.Description.Substring(0, 150) + "..." : Model.Description)
+                            @(product.Description.Length > 150 ? product.Description.Substring(0, 150) + "..." : product.Description)
                         </p>
                     }
 
                     <!-- Price -->
                     <div class="price-section">
-                        <span class="current-price">$@Model.Price.ToString("F2")</span>
-                        <span class="old-price">$@((Model.Price * 1.2m).ToString("F2"))</span>
+                        <span class="current-price">$@product.Price.ToString("F2")</span>
+                        <span class="old-price">$@((product.Price * 1.2m).ToString("F2"))</span>
                         <span class="discount-badge">-20%</span>
                     </div>
 
                     <!-- Stock Status -->
                     <div class="stock-status">
-                        @if (Model.StockQuantity > 10)
+                        @if (product.StockQuantity > 10)
                         {
                             <div class="stock-indicator in-stock">
                                 <i class="fas fa-check-circle"></i>
-                                <span>In Stock (@Model.StockQuantity available)</span>
+                                <span>In Stock (@product.StockQuantity available)</span>
                             </div>
                         }
-                        else if (Model.StockQuantity > 0)
+                        else if (product.StockQuantity > 0)
                         {
                             <div class="stock-indicator low-stock">
                                 <i class="fas fa-exclamation-circle"></i>
-                                <span>Only @Model.StockQuantity left in stock!</span>
+                                <span>Only @product.StockQuantity left in stock!</span>
                             </div>
                         }
                         else
@@ -133,7 +134,7 @@
                                 <button type="button" class="qty-btn" onclick="updateQuantity(-1)">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <input type="number" id="productQuantity" value="1" min="1" max="@Model.StockQuantity" readonly />
+                                <input type="number" id="productQuantity" value="1" min="1" max="@product.StockQuantity" readonly />
                                 <button type="button" class="qty-btn" onclick="updateQuantity(1)">
                                     <i class="fas fa-plus"></i>
                                 </button>
@@ -142,7 +143,7 @@
 
                         <!-- Action Buttons -->
                         <div class="action-buttons">
-                            <button type="button" class="btn-add-cart-big" @(Model.StockQuantity == 0 ? "disabled" : "")>
+                            <button type="button" class="btn-add-cart-big" @(product.StockQuantity == 0 ? "disabled" : "")>
                                 <i class="fas fa-shopping-cart"></i>
                                 Add to Cart
                             </button>
@@ -221,13 +222,13 @@
             <!-- Description Tab -->
             <div class="tab-pane fade show active" id="description" role="tabpanel">
                 <h3>About This Product</h3>
-                @if (!string.IsNullOrEmpty(Model.Description))
+                @if (!string.IsNullOrEmpty(product.Description))
                 {
-                    <p>@Model.Description</p>
+                    <p>@product.Description</p>
                 }
                 else
                 {
-                    <p>Experience the exceptional quality of our @Model.Name. Handcrafted with the finest ingredients and traditional baking techniques, this product represents the pinnacle of artisan bakery craftsmanship.</p>
+                    <p>Experience the exceptional quality of our @product.Name. Handcrafted with the finest ingredients and traditional baking techniques, this product represents the pinnacle of artisan bakery craftsmanship.</p>
                 }
                 <p>Each item is carefully prepared by our master bakers using recipes passed down through generations. We source only the highest quality, locally-grown ingredients to ensure every bite is a moment of pure delight.</p>
             </div>
@@ -274,6 +275,81 @@
         </div>
     </div>
 </section>
+
+<!-- Related Products Section -->
+@if (Model.RelatedProducts.Any())
+{
+    <section class="related-products-section">
+        <div class="container">
+            <div class="section-title">
+                <span class="section-subtitle">More From This Category</span>
+                <h2>You May Also Like</h2>
+                <p>Discover more delicious treats from our @product.CategoryName collection</p>
+            </div>
+
+            <div class="row g-4 mt-3">
+                @foreach (var related in Model.RelatedProducts)
+                {
+                    <div class="col-xl-3 col-md-6">
+                        <div class="product-card-modern">
+                            <div class="product-card-image">
+                                @if (!string.IsNullOrEmpty(related.PrimaryImageUrl))
+                                {
+                                    <img src="@related.PrimaryImageUrl" alt="@related.Name" />
+                                }
+                                else
+                                {
+                                    <div class="product-placeholder">
+                                        <i class="fas fa-cookie-bite"></i>
+                                    </div>
+                                }
+
+                                <div class="product-badges">
+                                    @if ((DateTime.UtcNow - related.CreatedAt).TotalDays <= 7)
+                                    {
+                                        <span class="product-badge badge-new">New</span>
+                                    }
+                                </div>
+
+                                <div class="product-card-overlay">
+                                    <a asp-action="Details" asp-route-id="@related.Id" class="overlay-btn" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="overlay-btn" title="Add to Favorites">
+                                        <i class="fas fa-heart"></i>
+                                    </button>
+                                    <button type="button" class="overlay-btn" title="Quick View">
+                                        <i class="fas fa-shopping-bag"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="product-card-body">
+                                <span class="product-category-tag">@related.CategoryName</span>
+                                <h3 class="product-card-name">
+                                    <a asp-action="Details" asp-route-id="@related.Id">@related.Name</a>
+                                </h3>
+                                <div class="product-card-footer">
+                                    <span class="product-card-price">$@related.Price.ToString("F2")</span>
+                                    <button type="button" class="btn-add-cart">
+                                        <i class="fas fa-plus"></i>
+                                        <span>Add</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="text-center mt-5">
+                <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@product.CategoryId" class="btn-primary-custom">
+                    <i class="fas fa-th-large"></i> View All @product.CategoryName
+                </a>
+            </div>
+        </div>
+    </section>
+}
 
 @section Scripts {
     <script>

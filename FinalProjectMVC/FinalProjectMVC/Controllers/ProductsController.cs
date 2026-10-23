@@ -69,7 +69,19 @@ namespace FinalProjectMVC.Controllers
                 return NotFound();
             }
 
-            return View(product);
+            // Fetch related products from the same category
+            var relatedProducts = await _productService.GetProductsByCategoryAsync(product.CategoryId);
+
+            var model = new ProductDetailsVM
+            {
+                Product = product,
+                RelatedProducts = relatedProducts
+                    .Where(p => p.Id != product.Id && p.IsAvailable)
+                    .Take(4)
+                    .ToList()
+            };
+
+            return View(model);
         }
     }
 }
