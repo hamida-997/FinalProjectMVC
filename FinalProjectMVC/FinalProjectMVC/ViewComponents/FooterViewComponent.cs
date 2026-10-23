@@ -1,16 +1,16 @@
-using FinalProjectMVC.ViewModels;
 using FinalProjectMVC.Services.Interfaces;
+using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinalProjectMVC.ViewComponents
 {
     public class FooterViewComponent : ViewComponent
     {
-        private readonly IApiService _apiService;
+        private readonly ICategoryService _categoryService;
 
-        public FooterViewComponent(IApiService apiService)
+        public FooterViewComponent(ICategoryService categoryService)
         {
-            _apiService = apiService;
+            _categoryService = categoryService;
         }
 
         public async Task<IViewComponentResult> InvokeAsync()
@@ -19,12 +19,8 @@ namespace FinalProjectMVC.ViewComponents
 
             try
             {
-                // Fetch categories from API to show in footer
-                var categories = await _apiService.GetAsync<List<CategoryVM>>("api/categories");
-                if (categories != null)
-                {
-                    model.Categories = categories.Where(c => c.IsActive).Take(5).ToList();
-                }
+                var categories = await _categoryService.GetAllCategoriesAsync();
+                model.Categories = categories.Where(c => c.IsActive).Take(5).ToList();
             }
             catch
             {

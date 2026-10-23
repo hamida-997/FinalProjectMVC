@@ -1,16 +1,18 @@
-using FinalProjectMVC.ViewModels;
 using FinalProjectMVC.Services.Interfaces;
+using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinalProjectMVC.Controllers
 {
     public class ProductsController : Controller
     {
-        private readonly IApiService _apiService;
+        private readonly IProductService _productService;
+        private readonly ICategoryService _categoryService;
 
-        public ProductsController(IApiService apiService)
+        public ProductsController(IProductService productService, ICategoryService categoryService)
         {
-            _apiService = apiService;
+            _productService = productService;
+            _categoryService = categoryService;
         }
 
         public async Task<IActionResult> Index(int? categoryId, string? search, string? sortBy)
@@ -23,21 +25,13 @@ namespace FinalProjectMVC.Controllers
             };
 
             // Fetch categories
-            var categories = await _apiService.GetAsync<List<CategoryVM>>("api/categories");
-            model.Categories = categories?.Where(c => c.IsActive).ToList() ?? new List<CategoryVM>();
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            model.Categories = categories.Where(c => c.IsActive).ToList();
 
-            // Fetch products based on filters
-            List<ProductVM>? products;
-            if (categoryId.HasValue && categoryId.Value > 0)
-            {
-                products = await _apiService.GetAsync<List<ProductVM>>($"api/products/Category/{categoryId.Value}");
-            }
-            else
-            {
-                products = await _apiService.GetAsync<List<ProductVM>>("api/products");
-            }
-
-            products ??= new List<ProductVM>();
+            // Fetch products based on category filter
+            var products = categoryId.HasValue && categoryId.Value > 0
+                ? await _productService.GetProductsByCategoryAsync(categoryId.Value)
+                : await _productService.GetAllProductsAsync();
 
             // Filter by search term
             if (!string.IsNullOrWhiteSpace(search))
@@ -68,7 +62,7 @@ namespace FinalProjectMVC.Controllers
 
         public async Task<IActionResult> Details(int id)
         {
-            var product = await _apiService.GetAsync<ProductVM>($"api/products/{id}");
+            var product = await _productService.GetProductByIdAsync(id);
 
             if (product == null)
             {
