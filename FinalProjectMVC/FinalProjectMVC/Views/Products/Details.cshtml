@@ -1,0 +1,298 @@
+@model ProductVM
+@{
+    ViewData["Title"] = Model.Name;
+}
+
+<!-- Breadcrumb -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <i class="fas fa-chevron-right separator"></i>
+            <a asp-controller="Products" asp-action="Index">Products</a>
+            <i class="fas fa-chevron-right separator"></i>
+            <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@Model.CategoryId">
+                @Model.CategoryName
+            </a>
+            <i class="fas fa-chevron-right separator"></i>
+            <span class="current">@Model.Name</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Product Details Main Section -->
+<section class="product-details-section">
+    <div class="container">
+        <div class="row g-5">
+            <!-- Image Gallery -->
+            <div class="col-lg-6">
+                <div class="product-gallery">
+                    <div class="main-image-wrapper">
+                        @if (Model.Images.Any())
+                        {
+                            <img id="mainProductImage" src="@Model.PrimaryImageUrl" alt="@Model.Name" class="main-image" />
+                        }
+                        else
+                        {
+                            <div class="main-image-placeholder">
+                                <i class="fas fa-cookie-bite"></i>
+                            </div>
+                        }
+
+                        <div class="image-badges">
+                            @if ((DateTime.UtcNow - Model.CreatedAt).TotalDays <= 7)
+                            {
+                                <span class="product-badge badge-new">New</span>
+                            }
+                        </div>
+
+                        <button class="zoom-btn" title="Zoom">
+                            <i class="fas fa-expand"></i>
+                        </button>
+                    </div>
+
+                    @if (Model.Images.Count > 1)
+                    {
+                        <div class="thumbnail-list">
+                            @foreach (var image in Model.Images)
+                            {
+                                <div class="thumbnail @(image.IsPrimary ? "active" : "")" onclick="switchImage('@image.ImageUrl', this)">
+                                    <img src="@image.ImageUrl" alt="Product image" />
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="col-lg-6">
+                <div class="product-info-detail">
+                    <span class="product-category-tag">@Model.CategoryName</span>
+                    <h1 class="product-title">@Model.Name</h1>
+
+                    <!-- Rating -->
+                    <div class="product-rating">
+                        <div class="stars">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                        <span class="rating-text">4.5 (124 reviews)</span>
+                    </div>
+
+                    <!-- Short Description -->
+                    @if (!string.IsNullOrEmpty(Model.Description))
+                    {
+                        <p class="product-short-desc">
+                            @(Model.Description.Length > 150 ? Model.Description.Substring(0, 150) + "..." : Model.Description)
+                        </p>
+                    }
+
+                    <!-- Price -->
+                    <div class="price-section">
+                        <span class="current-price">$@Model.Price.ToString("F2")</span>
+                        <span class="old-price">$@((Model.Price * 1.2m).ToString("F2"))</span>
+                        <span class="discount-badge">-20%</span>
+                    </div>
+
+                    <!-- Stock Status -->
+                    <div class="stock-status">
+                        @if (Model.StockQuantity > 10)
+                        {
+                            <div class="stock-indicator in-stock">
+                                <i class="fas fa-check-circle"></i>
+                                <span>In Stock (@Model.StockQuantity available)</span>
+                            </div>
+                        }
+                        else if (Model.StockQuantity > 0)
+                        {
+                            <div class="stock-indicator low-stock">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <span>Only @Model.StockQuantity left in stock!</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="stock-indicator out-of-stock">
+                                <i class="fas fa-times-circle"></i>
+                                <span>Out of Stock</span>
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Quantity Selector -->
+                    <div class="purchase-section">
+                        <div class="quantity-section">
+                            <label>Quantity:</label>
+                            <div class="quantity-selector">
+                                <button type="button" class="qty-btn" onclick="updateQuantity(-1)">
+                                    <i class="fas fa-minus"></i>
+                                </button>
+                                <input type="number" id="productQuantity" value="1" min="1" max="@Model.StockQuantity" readonly />
+                                <button type="button" class="qty-btn" onclick="updateQuantity(1)">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="action-buttons">
+                            <button type="button" class="btn-add-cart-big" @(Model.StockQuantity == 0 ? "disabled" : "")>
+                                <i class="fas fa-shopping-cart"></i>
+                                Add to Cart
+                            </button>
+                            <button type="button" class="btn-favorite" title="Add to Favorites">
+                                <i class="far fa-heart"></i>
+                            </button>
+                            <button type="button" class="btn-share" title="Share">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Features -->
+                    <div class="product-features">
+                        <div class="feature-item">
+                            <i class="fas fa-shipping-fast"></i>
+                            <div>
+                                <strong>Free Delivery</strong>
+                                <span>On orders over $50</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-leaf"></i>
+                            <div>
+                                <strong>Fresh Daily</strong>
+                                <span>Baked every morning</span>
+                            </div>
+                        </div>
+                        <div class="feature-item">
+                            <i class="fas fa-award"></i>
+                            <div>
+                                <strong>Premium Quality</strong>
+                                <span>Organic ingredients</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Share Section -->
+                    <div class="share-section">
+                        <span class="share-label">Share:</span>
+                        <div class="share-icons">
+                            <a href="#" class="share-icon facebook"><i class="fab fa-facebook-f"></i></a>
+                            <a href="#" class="share-icon twitter"><i class="fab fa-twitter"></i></a>
+                            <a href="#" class="share-icon pinterest"><i class="fab fa-pinterest"></i></a>
+                            <a href="#" class="share-icon whatsapp"><i class="fab fa-whatsapp"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Tabs Section -->
+<section class="product-tabs-section">
+    <div class="container">
+        <ul class="nav product-tabs" id="productTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="description-tab" data-bs-toggle="tab" data-bs-target="#description" type="button">
+                    <i class="fas fa-align-left"></i> Description
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="ingredients-tab" data-bs-toggle="tab" data-bs-target="#ingredients" type="button">
+                    <i class="fas fa-list-ul"></i> Ingredients
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping" type="button">
+                    <i class="fas fa-shipping-fast"></i> Shipping & Returns
+                </button>
+            </li>
+        </ul>
+
+        <div class="tab-content product-tab-content" id="productTabsContent">
+            <!-- Description Tab -->
+            <div class="tab-pane fade show active" id="description" role="tabpanel">
+                <h3>About This Product</h3>
+                @if (!string.IsNullOrEmpty(Model.Description))
+                {
+                    <p>@Model.Description</p>
+                }
+                else
+                {
+                    <p>Experience the exceptional quality of our @Model.Name. Handcrafted with the finest ingredients and traditional baking techniques, this product represents the pinnacle of artisan bakery craftsmanship.</p>
+                }
+                <p>Each item is carefully prepared by our master bakers using recipes passed down through generations. We source only the highest quality, locally-grown ingredients to ensure every bite is a moment of pure delight.</p>
+            </div>
+
+            <!-- Ingredients Tab -->
+            <div class="tab-pane fade" id="ingredients" role="tabpanel">
+                <h3>Ingredients</h3>
+                <p>Our products are made with these carefully selected ingredients:</p>
+                <ul class="ingredients-list">
+                    <li><i class="fas fa-check"></i> Organic flour</li>
+                    <li><i class="fas fa-check"></i> Farm-fresh eggs</li>
+                    <li><i class="fas fa-check"></i> Pure cane sugar</li>
+                    <li><i class="fas fa-check"></i> Grass-fed butter</li>
+                    <li><i class="fas fa-check"></i> Sea salt</li>
+                    <li><i class="fas fa-check"></i> Natural vanilla extract</li>
+                </ul>
+                <div class="allergy-note">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Allergy Information:</strong> Contains gluten, dairy, and eggs. Made in a facility that handles nuts.
+                </div>
+            </div>
+
+            <!-- Shipping Tab -->
+            <div class="tab-pane fade" id="shipping" role="tabpanel">
+                <h3>Shipping Information</h3>
+                <div class="shipping-info-grid">
+                    <div class="shipping-item">
+                        <i class="fas fa-truck"></i>
+                        <h4>Standard Delivery</h4>
+                        <p>2-3 business days. Free for orders over $50.</p>
+                    </div>
+                    <div class="shipping-item">
+                        <i class="fas fa-bolt"></i>
+                        <h4>Express Delivery</h4>
+                        <p>Next day delivery available for an additional fee.</p>
+                    </div>
+                    <div class="shipping-item">
+                        <i class="fas fa-undo"></i>
+                        <h4>Easy Returns</h4>
+                        <p>30-day return policy on unopened items.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        // Switch main image when thumbnail clicked
+        function switchImage(url, element) {
+            document.getElementById('mainProductImage').src = url;
+            document.querySelectorAll('.thumbnail').forEach(t => t.classList.remove('active'));
+            element.classList.add('active');
+        }
+
+        // Quantity selector
+        function updateQuantity(delta) {
+            const input = document.getElementById('productQuantity');
+            const max = parseInt(input.max);
+            const current = parseInt(input.value);
+            const newValue = current + delta;
+            if (newValue >= 1 && newValue <= max) {
+                input.value = newValue;
+            }
+        }
+    </script>
+}
