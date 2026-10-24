@@ -1,0 +1,217 @@
+@model List<CartItemVM>
+@{
+    ViewData["Title"] = "Shopping Cart";
+    var subtotal = Model.Sum(i => i.Price * i.Quantity);
+    var shipping = subtotal > 50 ? 0 : 5.99m;
+    var tax = subtotal * 0.08m;
+    var total = subtotal + shipping + tax;
+}
+
+<!-- Breadcrumb -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <i class="fas fa-chevron-right separator"></i>
+            <span class="current">Shopping Cart</span>
+        </nav>
+    </div>
+</section>
+
+<!-- Cart Section -->
+<section class="cart-section">
+    <div class="container">
+        <div class="cart-header">
+            <h1>Your Shopping Cart</h1>
+            <p>
+                @if (Model.Any())
+                {
+                    <text>You have <strong>@Model.Sum(i => i.Quantity)</strong> item@(Model.Sum(i => i.Quantity) != 1 ? "s" : "") in your cart</text>
+                }
+                else
+                {
+                    <text>Your cart is empty</text>
+                }
+            </p>
+        </div>
+
+        @if (Model.Any())
+        {
+            <div class="row g-4">
+                <!-- Cart Items -->
+                <div class="col-lg-8">
+                    <div class="cart-items-wrapper">
+                        <div class="cart-items-header">
+                            <div class="header-product">Product</div>
+                            <div class="header-price">Price</div>
+                            <div class="header-quantity">Quantity</div>
+                            <div class="header-total">Total</div>
+                            <div class="header-action"></div>
+                        </div>
+
+                        @foreach (var item in Model)
+                        {
+                            <div class="cart-item">
+                                <div class="cart-item-product">
+                                    <div class="cart-item-image">
+                                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                        {
+                                            <img src="@item.ImageUrl" alt="@item.ProductName" />
+                                        }
+                                        else
+                                        {
+                                            <div class="cart-item-placeholder">
+                                                <i class="fas fa-cookie-bite"></i>
+                                            </div>
+                                        }
+                                    </div>
+                                    <div class="cart-item-info">
+                                        <h4>@item.ProductName</h4>
+                                        <span class="cart-item-id">Product #@item.ProductId</span>
+                                    </div>
+                                </div>
+
+                                <div class="cart-item-price">
+                                    <span class="price-label">Price:</span>
+                                    <span class="price-value">$@item.Price.ToString("F2")</span>
+                                </div>
+
+                                <div class="cart-item-quantity">
+                                    <span class="quantity-label">Quantity:</span>
+                                    <div class="quantity-selector-small">
+                                        <button type="button" class="qty-btn-small" title="Decrease">
+                                            <i class="fas fa-minus"></i>
+                                        </button>
+                                        <input type="number" value="@item.Quantity" min="1" readonly />
+                                        <button type="button" class="qty-btn-small" title="Increase">
+                                            <i class="fas fa-plus"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div class="cart-item-total">
+                                    <span class="total-label">Total:</span>
+                                    <span class="total-value">$@((item.Price * item.Quantity).ToString("F2"))</span>
+                                </div>
+
+                                <div class="cart-item-action">
+                                    <button type="button" class="btn-remove" title="Remove from cart">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        }
+
+                        <div class="cart-actions">
+                            <a asp-controller="Products" asp-action="Index" class="btn-continue-shopping">
+                                <i class="fas fa-arrow-left"></i>
+                                Continue Shopping
+                            </a>
+                            <button type="button" class="btn-clear-cart">
+                                <i class="fas fa-trash"></i>
+                                Clear Cart
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="col-lg-4">
+                    <div class="order-summary">
+                        <h3>Order Summary</h3>
+
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span>$@subtotal.ToString("F2")</span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>
+                                Shipping
+                                @if (shipping == 0)
+                                {
+                                    <small class="free-shipping-badge">FREE</small>
+                                }
+                            </span>
+                            <span>$@shipping.ToString("F2")</span>
+                        </div>
+
+                        <div class="summary-row">
+                            <span>Tax (8%)</span>
+                            <span>$@tax.ToString("F2")</span>
+                        </div>
+
+                        @if (subtotal <= 50)
+                        {
+                            <div class="shipping-notice">
+                                <i class="fas fa-info-circle"></i>
+                                Add <strong>$@((50 - subtotal).ToString("F2"))</strong> more for FREE shipping!
+                            </div>
+                        }
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-row summary-total">
+                            <span>Total</span>
+                            <span>$@total.ToString("F2")</span>
+                        </div>
+
+                        <!-- Promo Code -->
+                        <div class="promo-code-section">
+                            <label>Have a promo code?</label>
+                            <div class="promo-input-wrapper">
+                                <input type="text" placeholder="Enter code" class="promo-input" />
+                                <button type="button" class="btn-apply">Apply</button>
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn-checkout">
+                            <i class="fas fa-lock"></i>
+                            Proceed to Checkout
+                        </button>
+
+                        <!-- Payment Icons -->
+                        <div class="payment-icons">
+                            <span>We accept:</span>
+                            <div class="payment-list">
+                                <i class="fab fa-cc-visa" title="Visa"></i>
+                                <i class="fab fa-cc-mastercard" title="Mastercard"></i>
+                                <i class="fab fa-cc-amex" title="American Express"></i>
+                                <i class="fab fa-cc-paypal" title="PayPal"></i>
+                            </div>
+                        </div>
+
+                        <!-- Trust Badges -->
+                        <div class="trust-badges">
+                            <div class="trust-badge-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Secure Payment</span>
+                            </div>
+                            <div class="trust-badge-item">
+                                <i class="fas fa-undo"></i>
+                                <span>Easy Returns</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <!-- Empty Cart -->
+            <div class="empty-cart">
+                <div class="empty-cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h2>Your cart is empty</h2>
+                <p>Looks like you haven't added any delicious treats to your cart yet.</p>
+                <a asp-controller="Products" asp-action="Index" class="btn-primary-custom">
+                    <i class="fas fa-cookie-bite"></i>
+                    Start Shopping
+                </a>
+            </div>
+        }
+    </div>
+</section>
