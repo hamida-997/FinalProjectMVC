@@ -107,9 +107,13 @@
                                 </div>
 
                                 <div class="cart-item-action">
-                                    <button type="button" class="btn-remove" title="Remove from cart">
-                                        <i class="fas fa-trash-alt"></i>
-                                    </button>
+                                    <form asp-controller="Cart" asp-action="RemoveFromCart" method="post" style="margin: 0;" onsubmit="return confirm('Remove this item from cart?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@item.ProductId" />
+                                        <button type="submit" class="btn-remove" title="Remove from cart">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         }
@@ -119,10 +123,13 @@
                                 <i class="fas fa-arrow-left"></i>
                                 Continue Shopping
                             </a>
-                            <button type="button" class="btn-clear-cart">
-                                <i class="fas fa-trash"></i>
-                                Clear Cart
-                            </button>
+                            <form asp-controller="Cart" asp-action="ClearCart" method="post" style="margin: 0;" onsubmit="return confirm('Are you sure you want to clear your entire cart?');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-clear-cart">
+                                    <i class="fas fa-trash"></i>
+                                    Clear Cart
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>

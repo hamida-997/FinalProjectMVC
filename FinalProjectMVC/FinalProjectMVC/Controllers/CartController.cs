@@ -31,6 +31,24 @@ namespace FinalProjectMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public IActionResult RemoveFromCart(int productId)
+        {
+            _cartService.RemoveFromCart(productId);
+            TempData["SuccessMessage"] = "Item removed from cart.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult ClearCart()
+        {
+            _cartService.ClearCart();
+            TempData["SuccessMessage"] = "Cart cleared successfully.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1, string? returnUrl = null)
         {
             var product = await _productService.GetProductByIdAsync(productId);
