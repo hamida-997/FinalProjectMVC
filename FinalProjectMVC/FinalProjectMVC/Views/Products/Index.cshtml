@@ -186,10 +186,16 @@
                                         }
                                         <div class="product-card-footer">
                                             <span class="product-card-price">$@product.Price.ToString("F2")</span>
-                                            <button type="button" class="btn-add-cart">
-                                                <i class="fas fa-plus"></i>
-                                                <span>Add</span>
-                                            </button>
+                                            <form asp-controller="Cart" asp-action="AddToCart" method="post" style="margin: 0;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="productId" value="@product.Id" />
+                                                <input type="hidden" name="quantity" value="1" />
+                                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
+                                                <button type="submit" class="btn-add-cart">
+                                                    <i class="fas fa-plus"></i>
+                                                    <span>Add</span>
+                                                </button>
+                                            </form>
                                         </div>
                                     </div>
                                 </div>

@@ -134,14 +134,17 @@
                     </div>
 
                     <!-- Quantity Selector -->
-                    <div class="purchase-section">
+                    <form asp-controller="Cart" asp-action="AddToCart" method="post" class="purchase-section">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="productId" value="@product.Id" />
+
                         <div class="quantity-section">
                             <label>Quantity:</label>
                             <div class="quantity-selector">
                                 <button type="button" class="qty-btn" onclick="updateQuantity(-1)">
                                     <i class="fas fa-minus"></i>
                                 </button>
-                                <input type="number" id="productQuantity" value="1" min="1" max="@product.StockQuantity" readonly />
+                                <input type="number" id="productQuantity" name="quantity" value="1" min="1" max="@product.StockQuantity" readonly />
                                 <button type="button" class="qty-btn" onclick="updateQuantity(1)">
                                     <i class="fas fa-plus"></i>
                                 </button>
@@ -150,7 +153,7 @@
 
                         <!-- Action Buttons -->
                         <div class="action-buttons">
-                            <button type="button" class="btn-add-cart-big" @(product.StockQuantity == 0 ? "disabled" : "")>
+                            <button type="submit" class="btn-add-cart-big" @(product.StockQuantity == 0 ? "disabled" : "")>
                                 <i class="fas fa-shopping-cart"></i>
                                 Add to Cart
                             </button>
@@ -161,7 +164,7 @@
                                 <i class="fas fa-share-alt"></i>
                             </button>
                         </div>
-                    </div>
+                    </form>
 
                     <!-- Features -->
                     <div class="product-features">
@@ -345,10 +348,16 @@
                                 </h3>
                                 <div class="product-card-footer">
                                     <span class="product-card-price">$@related.Price.ToString("F2")</span>
-                                    <button type="button" class="btn-add-cart">
-                                        <i class="fas fa-plus"></i>
-                                        <span>Add</span>
-                                    </button>
+                                    <form asp-controller="Cart" asp-action="AddToCart" method="post" style="margin: 0;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="productId" value="@related.Id" />
+                                        <input type="hidden" name="quantity" value="1" />
+                                        <input type="hidden" name="returnUrl" value="@Context.Request.Path" />
+                                        <button type="submit" class="btn-add-cart">
+                                            <i class="fas fa-plus"></i>
+                                            <span>Add</span>
+                                        </button>
+                                    </form>
                                 </div>
                             </div>
                         </div>
