@@ -31,9 +31,16 @@
             <div class="col-lg-6">
                 <div class="product-gallery">
                     <div class="main-image-wrapper">
-                        @if (product.Images.Any())
+                        @{
+                            var mainImage = product.Images.FirstOrDefault(i => i.IsPrimary);
+                            if (mainImage == null)
+                            {
+                                mainImage = product.Images.FirstOrDefault();
+                            }
+                        }
+                        @if (mainImage != null)
                         {
-                            <img id="mainProductImage" src="@product.PrimaryImageUrl" alt="@product.Name" class="main-image" />
+                            <img id="mainProductImage" src="@mainImage.ImageUrl" alt="@product.Name" class="main-image" />
                         }
                         else
                         {
@@ -293,9 +300,16 @@
                     <div class="col-xl-3 col-md-6">
                         <div class="product-card-modern">
                             <div class="product-card-image">
-                                @if (!string.IsNullOrEmpty(related.PrimaryImageUrl))
+                                @{
+                                    var relatedImage = related.Images.FirstOrDefault(i => i.IsPrimary);
+                                    if (relatedImage == null)
+                                    {
+                                        relatedImage = related.Images.FirstOrDefault();
+                                    }
+                                }
+                                @if (relatedImage != null)
                                 {
-                                    <img src="@related.PrimaryImageUrl" alt="@related.Name" />
+                                    <img src="@relatedImage.ImageUrl" alt="@related.Name" />
                                 }
                                 else
                                 {

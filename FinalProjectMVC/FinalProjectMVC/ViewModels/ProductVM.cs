@@ -13,9 +13,5 @@ namespace FinalProjectMVC.ViewModels
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public List<ProductImageVM> Images { get; set; } = new List<ProductImageVM>();
-
-        public string PrimaryImageUrl => Images.FirstOrDefault(i => i.IsPrimary)?.ImageUrl 
-                                      ?? Images.FirstOrDefault()?.ImageUrl 
-                                      ?? string.Empty;
     }
 }

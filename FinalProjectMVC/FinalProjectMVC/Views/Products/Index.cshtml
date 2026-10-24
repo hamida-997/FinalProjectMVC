@@ -91,7 +91,7 @@
                 <!-- Toolbar -->
                 <div class="products-toolbar">
                     <div class="results-count">
-                        <strong>@Model.TotalProducts</strong> product@(Model.TotalProducts != 1 ? "s" : "") found
+                        <strong>@Model.Products.Count</strong> product@(Model.Products.Count != 1 ? "s" : "") found
                         @if (Model.SelectedCategoryId.HasValue)
                         {
                             var selectedCategory = Model.Categories.FirstOrDefault(c => c.Id == Model.SelectedCategoryId);
@@ -131,9 +131,16 @@
                             <div class="col-xl-4 col-md-6">
                                 <div class="product-card-modern">
                                     <div class="product-card-image">
-                                        @if (!string.IsNullOrEmpty(product.PrimaryImageUrl))
+                                        @{
+                                            var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary);
+                                            if (primaryImage == null)
+                                            {
+                                                primaryImage = product.Images.FirstOrDefault();
+                                            }
+                                        }
+                                        @if (primaryImage != null)
                                         {
-                                            <img src="@product.PrimaryImageUrl" alt="@product.Name" />
+                                            <img src="@primaryImage.ImageUrl" alt="@product.Name" />
                                         }
                                         else
                                         {

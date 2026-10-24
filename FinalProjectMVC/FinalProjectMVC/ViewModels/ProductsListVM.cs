@@ -7,6 +7,5 @@ namespace FinalProjectMVC.ViewModels
         public int? SelectedCategoryId { get; set; }
         public string? SearchTerm { get; set; }
         public string? SortBy { get; set; }
-        public int TotalProducts => Products.Count;
     }
 }
