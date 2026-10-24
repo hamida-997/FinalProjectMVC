@@ -23,6 +23,14 @@ namespace FinalProjectMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public IActionResult UpdateQuantity(int productId, int quantity)
+        {
+            _cartService.UpdateQuantity(productId, quantity);
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCart(int productId, int quantity = 1, string? returnUrl = null)
         {
             var product = await _productService.GetProductByIdAsync(productId);

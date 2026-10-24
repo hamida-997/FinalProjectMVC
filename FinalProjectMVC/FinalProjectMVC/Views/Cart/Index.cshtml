@@ -81,13 +81,23 @@
                                 <div class="cart-item-quantity">
                                     <span class="quantity-label">Quantity:</span>
                                     <div class="quantity-selector-small">
-                                        <button type="button" class="qty-btn-small" title="Decrease">
-                                            <i class="fas fa-minus"></i>
-                                        </button>
+                                        <form asp-controller="Cart" asp-action="UpdateQuantity" method="post" style="display: inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@item.ProductId" />
+                                            <input type="hidden" name="quantity" value="@(item.Quantity - 1)" />
+                                            <button type="submit" class="qty-btn-small" title="Decrease">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                        </form>
                                         <input type="number" value="@item.Quantity" min="1" readonly />
-                                        <button type="button" class="qty-btn-small" title="Increase">
-                                            <i class="fas fa-plus"></i>
-                                        </button>
+                                        <form asp-controller="Cart" asp-action="UpdateQuantity" method="post" style="display: inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="productId" value="@item.ProductId" />
+                                            <input type="hidden" name="quantity" value="@(item.Quantity + 1)" />
+                                            <button type="submit" class="qty-btn-small" title="Increase">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </div>
 
