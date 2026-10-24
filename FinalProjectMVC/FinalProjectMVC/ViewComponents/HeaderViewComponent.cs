@@ -1,5 +1,5 @@
-using FinalProjectMVC.ViewModels;
 using FinalProjectMVC.Services.Interfaces;
+using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinalProjectMVC.ViewComponents
@@ -7,10 +7,12 @@ namespace FinalProjectMVC.ViewComponents
     public class HeaderViewComponent : ViewComponent
     {
         private readonly IAuthService _authService;
+        private readonly ICartService _cartService;
 
-        public HeaderViewComponent(IAuthService authService)
+        public HeaderViewComponent(IAuthService authService, ICartService cartService)
         {
             _authService = authService;
+            _cartService = cartService;
         }
 
         public IViewComponentResult Invoke()
@@ -23,7 +25,7 @@ namespace FinalProjectMVC.ViewComponents
                 UserName = currentUser?.UserName,
                 FirstName = currentUser?.FirstName,
                 Email = currentUser?.Email,
-                CartItemCount = 0 // TODO: Get actual cart count later
+                CartItemCount = _cartService.GetCartItemCount()
             };
 
             return View(model);
