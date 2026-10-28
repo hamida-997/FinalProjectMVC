@@ -48,6 +48,11 @@ app.UseSession();
 
 app.UseAuthorization();
 
+// Admin area route - must come before default route
+app.MapControllerRoute(
+    name: "admin_area",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
