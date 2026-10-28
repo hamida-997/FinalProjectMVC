@@ -1,0 +1,164 @@
+@model AdminDashboardVM
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<section class="admin-dashboard-section">
+    <div class="container">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </h1>
+                <p class="admin-page-subtitle">Welcome back! Here's what's happening with your bakery today.</p>
+            </div>
+            <div class="admin-breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right separator"></i>
+                <span class="current">Dashboard</span>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="row g-4 mt-4">
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card stat-card-primary">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-cookie-bite"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3>@Model.TotalProducts</h3>
+                        <p>Total Products</p>
+                    </div>
+                    <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="stat-card-link">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card stat-card-success">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-th-large"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3>@Model.TotalCategories</h3>
+                        <p>Categories</p>
+                    </div>
+                    <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="stat-card-link">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card stat-card-warning">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3>@Model.TotalOrders</h3>
+                        <p>Total Orders</p>
+                    </div>
+                    <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="stat-card-link">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-xl-3 col-md-6">
+                <div class="stat-card stat-card-danger">
+                    <div class="stat-card-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="stat-card-content">
+                        <h3>@Model.OutOfStockProducts</h3>
+                        <p>Out of Stock</p>
+                    </div>
+                    <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="stat-card-link">
+                        View All <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions & Info -->
+        <div class="row g-4 mt-4">
+            <div class="col-lg-6">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h3><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="quick-actions-grid">
+                            <a asp-area="Admin" asp-controller="Products" asp-action="Create" class="quick-action-item">
+                                <div class="quick-action-icon bg-primary-soft">
+                                    <i class="fas fa-plus"></i>
+                                </div>
+                                <span>Add Product</span>
+                            </a>
+                            <a asp-area="Admin" asp-controller="Categories" asp-action="Create" class="quick-action-item">
+                                <div class="quick-action-icon bg-success-soft">
+                                    <i class="fas fa-folder-plus"></i>
+                                </div>
+                                <span>Add Category</span>
+                            </a>
+                            <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="quick-action-item">
+                                <div class="quick-action-icon bg-warning-soft">
+                                    <i class="fas fa-list"></i>
+                                </div>
+                                <span>View Orders</span>
+                            </a>
+                            <a asp-area="" asp-controller="Home" asp-action="Index" class="quick-action-item">
+                                <div class="quick-action-icon bg-info-soft">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </div>
+                                <span>View Site</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h3><i class="fas fa-chart-pie"></i> Overview</h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="overview-item">
+                            <div class="overview-label">
+                                <i class="fas fa-check-circle text-success"></i>
+                                Active Products
+                            </div>
+                            <div class="overview-value">@Model.ActiveProducts</div>
+                        </div>
+                        <div class="overview-item">
+                            <div class="overview-label">
+                                <i class="fas fa-pause-circle text-warning"></i>
+                                Inactive Products
+                            </div>
+                            <div class="overview-value">@(Model.TotalProducts - Model.ActiveProducts)</div>
+                        </div>
+                        <div class="overview-item">
+                            <div class="overview-label">
+                                <i class="fas fa-times-circle text-danger"></i>
+                                Out of Stock
+                            </div>
+                            <div class="overview-value">@Model.OutOfStockProducts</div>
+                        </div>
+                        <div class="overview-item overview-total">
+                            <div class="overview-label">
+                                <i class="fas fa-boxes"></i>
+                                <strong>Total Inventory</strong>
+                            </div>
+                            <div class="overview-value"><strong>@Model.TotalProducts</strong></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
