@@ -8,5 +8,7 @@ namespace FinalProjectMVC.Services.Interfaces
         Task<ProductVM?> GetProductByIdAsync(int id);
         Task<List<ProductVM>> GetProductsByCategoryAsync(int categoryId);
         Task<ProductVM?> CreateProductAsync(CreateProductVM model);
+        Task<ProductVM?> UpdateProductAsync(int id, UpdateProductVM model);
+        Task<bool> DeleteProductAsync(int id);
     }
 }

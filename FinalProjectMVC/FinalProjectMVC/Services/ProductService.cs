@@ -33,5 +33,15 @@ namespace FinalProjectMVC.Services
         {
             return await _apiService.PostAsync<ProductVM>("api/products", model);
         }
+
+        public async Task<ProductVM?> UpdateProductAsync(int id, UpdateProductVM model)
+        {
+            return await _apiService.PutAsync<ProductVM>($"api/products/{id}", model);
+        }
+
+        public async Task<bool> DeleteProductAsync(int id)
+        {
+            return await _apiService.DeleteAsync($"api/products/{id}");
+        }
     }
 }

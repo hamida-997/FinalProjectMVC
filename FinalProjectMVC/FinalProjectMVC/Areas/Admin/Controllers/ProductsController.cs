@@ -73,6 +73,87 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+            {
+                TempData["ErrorMessage"] = $"Product with ID {id} not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var model = new UpdateProductVM
+            {
+                Id = product.Id,
+                Name = product.Name,
+                Description = product.Description,
+                Price = product.Price,
+                StockQuantity = product.StockQuantity,
+                IsAvailable = product.IsAvailable,
+                CategoryId = product.CategoryId
+            };
+
+            await LoadCategoriesDropdown();
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(UpdateProductVM model)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                await LoadCategoriesDropdown();
+                return View(model);
+            }
+
+            var result = await _productService.UpdateProductAsync(model.Id, model);
+
+            if (result == null)
+            {
+                ModelState.AddModelError(string.Empty, "Failed to update product. Please try again.");
+                await LoadCategoriesDropdown();
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = $"Product '{result.Name}' updated successfully.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            var result = await _productService.DeleteProductAsync(id);
+
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Product deleted successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to delete product. It may have associated orders.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         private async Task LoadCategoriesDropdown()
         {
             var categories = await _categoryService.GetAllCategoriesAsync();
