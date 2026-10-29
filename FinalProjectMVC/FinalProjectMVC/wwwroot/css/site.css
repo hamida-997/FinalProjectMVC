@@ -4173,3 +4173,39 @@ p {
         justify-content: center;
     }
 }
+
+
+/* ========== Danger Button ========== */
+.btn-admin-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    background: #DC3545;
+    color: var(--white);
+}
+
+.btn-admin-danger:hover {
+    background: #C82333;
+    color: var(--white);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);
+}
+
+.btn-admin-danger.w-100 {
+    width: 100%;
+}
+
+.text-muted {
+    color: var(--text-light) !important;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}

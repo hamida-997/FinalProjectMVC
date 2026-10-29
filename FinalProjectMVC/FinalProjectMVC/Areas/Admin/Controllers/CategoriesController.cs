@@ -64,6 +64,81 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpGet]
+        public async Task<IActionResult> Edit(int id)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            var category = await _categoryService.GetCategoryByIdAsync(id);
+            if (category == null)
+            {
+                TempData["ErrorMessage"] = $"Category with ID {id} not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var model = new UpdateCategoryVM
+            {
+                Id = category.Id,
+                Name = category.Name,
+                Description = category.Description,
+                IsActive = category.IsActive
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(UpdateCategoryVM model)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            var result = await _categoryService.UpdateCategoryAsync(model.Id, model);
+
+            if (result == null)
+            {
+                ModelState.AddModelError(string.Empty, "Failed to update category. Please try again.");
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = $"Category '{result.Name}' updated successfully.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            var result = await _categoryService.DeleteCategoryAsync(id);
+
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Category deleted successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to delete category. It may still be in use.";
+            }
+
+            return RedirectToAction(nameof(Index));
+        }
+
         private bool HasAdminAccess()
         {
             if (!_authService.IsAuthenticated())

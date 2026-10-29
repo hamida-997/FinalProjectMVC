@@ -27,5 +27,15 @@ namespace FinalProjectMVC.Services
         {
             return await _apiService.PostAsync<CategoryVM>("api/categories", model);
         }
+
+        public async Task<CategoryVM?> UpdateCategoryAsync(int id, UpdateCategoryVM model)
+        {
+            return await _apiService.PutAsync<CategoryVM>($"api/categories/{id}", model);
+        }
+
+        public async Task<bool> DeleteCategoryAsync(int id)
+        {
+            return await _apiService.DeleteAsync($"api/categories/{id}");
+        }
     }
 }
