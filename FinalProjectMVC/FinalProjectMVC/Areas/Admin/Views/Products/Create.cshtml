@@ -1,0 +1,153 @@
+@model CreateProductVM
+@{
+    ViewData["Title"] = "Create Product";
+}
+
+<section class="admin-page-section">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-plus-circle"></i> Create Product
+                </h1>
+                <p class="admin-page-subtitle">Add a new product to your bakery</p>
+            </div>
+            <div class="admin-breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right separator"></i>
+                <a asp-area="Admin" asp-controller="Products" asp-action="Index">Products</a>
+                <i class="fas fa-chevron-right separator"></i>
+                <span class="current">Create</span>
+            </div>
+        </div>
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="row g-4 mt-2">
+                <!-- Main Info -->
+                <div class="col-lg-8">
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h3><i class="fas fa-info-circle"></i> Product Information</h3>
+                        </div>
+                        <div class="admin-panel-body">
+                            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                            {
+                                <div class="alert-danger mb-3">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <div asp-validation-summary="ModelOnly"></div>
+                                </div>
+                            }
+
+                            <div class="form-group-admin">
+                                <label asp-for="Name" class="form-label-admin"></label>
+                                <input asp-for="Name" class="form-control-admin" placeholder="e.g. Chocolate Lava Cake" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group-admin">
+                                <label asp-for="Description" class="form-label-admin"></label>
+                                <textarea asp-for="Description" class="form-control-admin" rows="5"
+                                          placeholder="Describe this product..."></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group-admin">
+                                        <label asp-for="Price" class="form-label-admin"></label>
+                                        <div class="input-with-prefix">
+                                            <span class="input-prefix">$</span>
+                                            <input asp-for="Price" type="number" step="0.01" min="0.01" class="form-control-admin" placeholder="0.00" />
+                                        </div>
+                                        <span asp-validation-for="Price" class="text-danger"></span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group-admin">
+                                        <label asp-for="StockQuantity" class="form-label-admin"></label>
+                                        <input asp-for="StockQuantity" type="number" min="0" class="form-control-admin" placeholder="0" />
+                                        <span asp-validation-for="StockQuantity" class="text-danger"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="col-lg-4">
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h3><i class="fas fa-cog"></i> Settings</h3>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div class="form-group-admin">
+                                <label asp-for="CategoryId" class="form-label-admin"></label>
+                                <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control-admin">
+                                    <option value="">-- Select Category --</option>
+                                </select>
+                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group-admin">
+                                <div class="form-check-admin">
+                                    <input asp-for="IsAvailable" class="form-check-input-admin" />
+                                    <label asp-for="IsAvailable" class="form-check-label-admin">
+                                        Available for Sale
+                                        <small>(Visible to customers)</small>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel mt-4">
+                        <div class="admin-panel-header">
+                            <h3><i class="fas fa-lightbulb"></i> Tips</h3>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div class="tip-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <div>
+                                    <strong>Clear names</strong>
+                                    <p>Use descriptive product names that attract customers.</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <div>
+                                    <strong>Good description</strong>
+                                    <p>Mention ingredients, flavor, and what makes it special.</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-check-circle text-success"></i>
+                                <div>
+                                    <strong>Add images later</strong>
+                                    <p>You can upload product images after creating it.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions-full">
+                <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn-admin-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn-admin-primary">
+                    <i class="fas fa-check"></i> Create Product
+                </button>
+            </div>
+        </form>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

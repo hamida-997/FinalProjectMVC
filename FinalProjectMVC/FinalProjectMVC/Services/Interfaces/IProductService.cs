@@ -7,5 +7,6 @@ namespace FinalProjectMVC.Services.Interfaces
         Task<List<ProductVM>> GetAllProductsAsync();
         Task<ProductVM?> GetProductByIdAsync(int id);
         Task<List<ProductVM>> GetProductsByCategoryAsync(int categoryId);
+        Task<ProductVM?> CreateProductAsync(CreateProductVM model);
     }
 }

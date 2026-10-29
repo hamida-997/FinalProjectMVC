@@ -28,5 +28,10 @@ namespace FinalProjectMVC.Services
             var products = await _apiService.GetAsync<List<ProductVM>>($"api/products/Category/{categoryId}");
             return products ?? new List<ProductVM>();
         }
+
+        public async Task<ProductVM?> CreateProductAsync(CreateProductVM model)
+        {
+            return await _apiService.PostAsync<ProductVM>("api/products", model);
+        }
     }
 }
