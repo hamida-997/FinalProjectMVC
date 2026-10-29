@@ -1,0 +1,189 @@
+@model ProductImagesVM
+@{
+    ViewData["Title"] = $"Images - {Model.ProductName}";
+    var apiBaseUrl = Context.RequestServices.GetRequiredService<IConfiguration>()["ApiSettings:BaseUrl"] ?? "https://localhost:7001";
+}
+
+<section class="admin-page-section">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-images"></i> Product Images
+                </h1>
+                <p class="admin-page-subtitle">Manage images for <strong>@Model.ProductName</strong></p>
+            </div>
+            <div class="admin-breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right separator"></i>
+                <a asp-area="Admin" asp-controller="Products" asp-action="Index">Products</a>
+                <i class="fas fa-chevron-right separator"></i>
+                <span class="current">Images</span>
+            </div>
+        </div>
+
+        <div class="row g-4 mt-2">
+            <!-- Upload Panel -->
+            <div class="col-lg-4">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h3><i class="fas fa-cloud-upload-alt"></i> Upload Image</h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        <form asp-area="Admin" asp-controller="Products" asp-action="UploadImage"
+                              method="post" enctype="multipart/form-data">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="productId" value="@Model.ProductId" />
+
+                            <div class="form-group-admin">
+                                <label class="form-label-admin">Select Image</label>
+                                <div class="file-upload-wrapper">
+                                    <input type="file" name="file" id="fileInput" accept="image/*" required
+                                           class="file-upload-input" onchange="showFileName(this)" />
+                                    <label for="fileInput" class="file-upload-label">
+                                        <i class="fas fa-cloud-upload-alt"></i>
+                                        <span id="fileName">Click to choose a file</span>
+                                        <small>JPG, PNG, GIF, or WebP (max 5MB)</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-group-admin">
+                                <div class="form-check-admin">
+                                    <input type="checkbox" name="isPrimary" value="true" id="isPrimary" class="form-check-input-admin" />
+                                    <label for="isPrimary" class="form-check-label-admin">
+                                        Set as Primary Image
+                                        <small>(Will be shown as the main product image)</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-admin-primary w-100">
+                                <i class="fas fa-upload"></i> Upload Image
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="admin-panel mt-4">
+                    <div class="admin-panel-header">
+                        <h3><i class="fas fa-info-circle"></i> Guidelines</h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Image quality</strong>
+                                <p>Use high-quality images (1200x1200 recommended).</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Primary image</strong>
+                                <p>Only one image can be primary at a time.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>File size</strong>
+                                <p>Keep images under 5MB for faster loading.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Images Grid -->
+            <div class="col-lg-8">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h3>
+                            <i class="fas fa-photo-video"></i> Current Images
+                            <span class="badge-count ms-2">@Model.Images.Count</span>
+                        </h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        @if (Model.Images.Any())
+                        {
+                            <div class="images-grid">
+                                @foreach (var image in Model.Images)
+                                {
+                                    <div class="image-card @(image.IsPrimary ? "is-primary" : "")">
+                                        <div class="image-preview">
+                                            <img src="@apiBaseUrl@image.ImageUrl" alt="Product image" />
+                                            @if (image.IsPrimary)
+                                            {
+                                                <span class="primary-badge">
+                                                    <i class="fas fa-star"></i> Primary
+                                                </span>
+                                            }
+                                        </div>
+                                        <div class="image-card-actions">
+                                            @if (!image.IsPrimary)
+                                            {
+                                                <form asp-area="Admin" asp-controller="Products" asp-action="SetPrimaryImage"
+                                                      method="post" style="display: inline;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="productId" value="@Model.ProductId" />
+                                                    <input type="hidden" name="imageId" value="@image.Id" />
+                                                    <button type="submit" class="image-action-btn btn-primary-soft" title="Set as Primary">
+                                                        <i class="fas fa-star"></i>
+                                                    </button>
+                                                </form>
+                                            }
+                                            <form asp-area="Admin" asp-controller="Products" asp-action="DeleteImage"
+                                                  method="post" style="display: inline;"
+                                                  onsubmit="return confirm('Delete this image?');">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="imageId" value="@image.Id" />
+                                                <input type="hidden" name="productId" value="@Model.ProductId" />
+                                                <button type="submit" class="image-action-btn btn-danger-soft" title="Delete">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-state-admin" style="padding: 50px 20px;">
+                                <div class="empty-state-icon">
+                                    <i class="fas fa-images"></i>
+                                </div>
+                                <h3>No images yet</h3>
+                                <p>Upload your first image using the panel on the left.</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions-full mt-4">
+            <a asp-area="Admin" asp-controller="Products" asp-action="Edit" asp-route-id="@Model.ProductId" class="btn-admin-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Edit
+            </a>
+            <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn-admin-secondary">
+                <i class="fas fa-list"></i> All Products
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function showFileName(input) {
+            const fileName = document.getElementById('fileName');
+            if (input.files && input.files[0]) {
+                fileName.textContent = input.files[0].name;
+                fileName.parentElement.classList.add('has-file');
+            }
+        }
+    </script>
+}

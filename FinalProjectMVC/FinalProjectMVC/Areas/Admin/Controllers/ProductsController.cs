@@ -10,15 +10,18 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
+        private readonly IProductImageService _productImageService;
         private readonly IAuthService _authService;
 
         public ProductsController(
             IProductService productService,
             ICategoryService categoryService,
+            IProductImageService productImageService,
             IAuthService authService)
         {
             _productService = productService;
             _categoryService = categoryService;
+            _productImageService = productImageService;
             _authService = authService;
         }
 
@@ -152,6 +155,108 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Images(int id)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            var product = await _productService.GetProductByIdAsync(id);
+            if (product == null)
+            {
+                TempData["ErrorMessage"] = $"Product with ID {id} not found.";
+                return RedirectToAction(nameof(Index));
+            }
+
+            var images = await _productImageService.GetImagesByProductAsync(id);
+
+            var model = new ProductImagesVM
+            {
+                ProductId = product.Id,
+                ProductName = product.Name,
+                Images = images
+            };
+
+            return View(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UploadImage(int productId, IFormFile file, bool isPrimary = false)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            if (file == null || file.Length == 0)
+            {
+                TempData["ErrorMessage"] = "Please select a file to upload.";
+                return RedirectToAction(nameof(Images), new { id = productId });
+            }
+
+            var result = await _productImageService.UploadImageAsync(productId, file, isPrimary);
+
+            if (result != null)
+            {
+                TempData["SuccessMessage"] = "Image uploaded successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to upload image. Check file size and format.";
+            }
+
+            return RedirectToAction(nameof(Images), new { id = productId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetPrimaryImage(int productId, int imageId)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            var result = await _productImageService.SetPrimaryAsync(productId, imageId);
+
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Primary image updated.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to update primary image.";
+            }
+
+            return RedirectToAction(nameof(Images), new { id = productId });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteImage(int imageId, int productId)
+        {
+            if (!HasAdminAccess())
+            {
+                return RedirectToLogin();
+            }
+
+            var result = await _productImageService.DeleteImageAsync(imageId);
+
+            if (result)
+            {
+                TempData["SuccessMessage"] = "Image deleted successfully.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Failed to delete image.";
+            }
+
+            return RedirectToAction(nameof(Images), new { id = productId });
         }
 
         private async Task LoadCategoriesDropdown()

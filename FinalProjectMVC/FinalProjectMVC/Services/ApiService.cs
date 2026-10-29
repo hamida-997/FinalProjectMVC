@@ -60,6 +60,23 @@ namespace FinalProjectMVC.Services
             }
         }
 
+        public async Task<T?> PostFormAsync<T>(string endpoint, MultipartFormDataContent content)
+        {
+            try
+            {
+                AddAuthorizationHeader();
+                var response = await _httpClient.PostAsync(endpoint, content);
+                response.EnsureSuccessStatusCode();
+
+                var responseContent = await response.Content.ReadAsStringAsync();
+                return JsonSerializer.Deserialize<T>(responseContent, _jsonOptions);
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
         public async Task<T?> PutAsync<T>(string endpoint, object data)
         {
             try

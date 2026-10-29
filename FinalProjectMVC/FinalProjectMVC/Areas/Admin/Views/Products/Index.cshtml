@@ -151,6 +151,10 @@
                                                class="action-btn action-view" title="View" target="_blank">
                                                 <i class="fas fa-eye"></i>
                                             </a>
+                                            <a asp-area="Admin" asp-controller="Products" asp-action="Images" asp-route-id="@product.Id"
+                                               class="action-btn action-images" title="Images">
+                                                <i class="fas fa-images"></i>
+                                            </a>
                                             <a asp-area="Admin" asp-controller="Products" asp-action="Edit" asp-route-id="@product.Id"
                                                class="action-btn action-edit" title="Edit">
                                                 <i class="fas fa-edit"></i>
