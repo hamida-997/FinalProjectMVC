@@ -22,5 +22,10 @@ namespace FinalProjectMVC.Services
         {
             return await _apiService.GetAsync<CategoryVM>($"api/categories/{id}");
         }
+
+        public async Task<CategoryVM?> CreateCategoryAsync(CreateCategoryVM model)
+        {
+            return await _apiService.PostAsync<CategoryVM>("api/categories", model);
+        }
     }
 }

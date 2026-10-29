@@ -1,0 +1,115 @@
+@model CreateCategoryVM
+@{
+    ViewData["Title"] = "Create Category";
+}
+
+<section class="admin-page-section">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-folder-plus"></i> Create Category
+                </h1>
+                <p class="admin-page-subtitle">Add a new category to your bakery</p>
+            </div>
+            <div class="admin-breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right separator"></i>
+                <a asp-area="Admin" asp-controller="Categories" asp-action="Index">Categories</a>
+                <i class="fas fa-chevron-right separator"></i>
+                <span class="current">Create</span>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-8">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h3><i class="fas fa-info-circle"></i> Category Information</h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        <form asp-action="Create" method="post">
+                            @Html.AntiForgeryToken()
+
+                            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                            {
+                                <div class="alert-danger mb-3">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <div asp-validation-summary="ModelOnly"></div>
+                                </div>
+                            }
+
+                            <div class="form-group-admin">
+                                <label asp-for="Name" class="form-label-admin"></label>
+                                <input asp-for="Name" class="form-control-admin" placeholder="e.g. Cakes, Breads, Pastries" />
+                                <span asp-validation-for="Name" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group-admin">
+                                <label asp-for="Description" class="form-label-admin"></label>
+                                <textarea asp-for="Description" class="form-control-admin" rows="4" placeholder="Describe this category..."></textarea>
+                                <span asp-validation-for="Description" class="text-danger"></span>
+                            </div>
+
+                            <div class="form-group-admin">
+                                <div class="form-check-admin">
+                                    <input asp-for="IsActive" class="form-check-input-admin" />
+                                    <label asp-for="IsActive" class="form-check-label-admin">
+                                        Mark as active
+                                        <small>(Active categories are visible to customers)</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <a asp-area="Admin" asp-controller="Categories" asp-action="Index" class="btn-admin-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn-admin-primary">
+                                    <i class="fas fa-check"></i> Create Category
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h3><i class="fas fa-lightbulb"></i> Tips</h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Clear names</strong>
+                                <p>Use simple, descriptive names that customers will understand.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Good descriptions</strong>
+                                <p>Help with SEO by adding a short description about the category.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Keep organized</strong>
+                                <p>Categories help customers find what they're looking for faster.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
