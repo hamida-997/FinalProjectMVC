@@ -1,0 +1,183 @@
+@model List<ProductVM>
+@{
+    ViewData["Title"] = "Products";
+}
+
+<section class="admin-page-section">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-cookie-bite"></i> Products
+                </h1>
+                <p class="admin-page-subtitle">Manage your bakery products</p>
+            </div>
+            <div class="d-flex gap-2 flex-wrap">
+                <div class="admin-breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Admin</span>
+                    <i class="fas fa-chevron-right separator"></i>
+                    <span class="current">Products</span>
+                </div>
+                <a asp-area="Admin" asp-controller="Products" asp-action="Create" class="btn-admin-primary">
+                    <i class="fas fa-plus"></i> Add Product
+                </a>
+            </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="row g-3 mt-3">
+            <div class="col-md-3 col-6">
+                <div class="mini-stat-card">
+                    <span class="mini-stat-label">Total</span>
+                    <span class="mini-stat-value">@Model.Count</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="mini-stat-card">
+                    <span class="mini-stat-label">Available</span>
+                    <span class="mini-stat-value text-success">@Model.Count(p => p.IsAvailable)</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="mini-stat-card">
+                    <span class="mini-stat-label">Out of Stock</span>
+                    <span class="mini-stat-value text-danger">@Model.Count(p => p.StockQuantity == 0)</span>
+                </div>
+            </div>
+            <div class="col-md-3 col-6">
+                <div class="mini-stat-card">
+                    <span class="mini-stat-label">Low Stock</span>
+                    <span class="mini-stat-value text-warning">@Model.Count(p => p.StockQuantity > 0 && p.StockQuantity < 10)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="admin-table-wrapper mt-4">
+            <div class="admin-table-header">
+                <h3>
+                    All Products
+                    <span class="badge-count">@Model.Count</span>
+                </h3>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Image</th>
+                                <th>Product</th>
+                                <th>Category</th>
+                                <th>Price</th>
+                                <th>Stock</th>
+                                <th>Status</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var product in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        @{
+                                            var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary);
+                                            if (primaryImage == null)
+                                            {
+                                                primaryImage = product.Images.FirstOrDefault();
+                                            }
+                                        }
+                                        <div class="product-thumb">
+                                            @if (primaryImage != null)
+                                            {
+                                                <img src="@primaryImage.ImageUrl" alt="@product.Name" />
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-cookie-bite"></i>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <strong>@product.Name</strong>
+                                        <small class="d-block text-muted">#@product.Id</small>
+                                    </td>
+                                    <td>
+                                        <span class="category-badge">@product.CategoryName</span>
+                                    </td>
+                                    <td>
+                                        <strong class="price-value">$@product.Price.ToString("F2")</strong>
+                                    </td>
+                                    <td>
+                                        @if (product.StockQuantity == 0)
+                                        {
+                                            <span class="stock-indicator-small out-of-stock">
+                                                <i class="fas fa-times-circle"></i> 0
+                                            </span>
+                                        }
+                                        else if (product.StockQuantity < 10)
+                                        {
+                                            <span class="stock-indicator-small low-stock">
+                                                <i class="fas fa-exclamation-circle"></i> @product.StockQuantity
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="stock-indicator-small in-stock">
+                                                <i class="fas fa-check-circle"></i> @product.StockQuantity
+                                            </span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (product.IsAvailable)
+                                        {
+                                            <span class="status-badge status-active">
+                                                <i class="fas fa-check-circle"></i> Available
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="status-badge status-inactive">
+                                                <i class="fas fa-pause-circle"></i> Hidden
+                                            </span>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="admin-actions">
+                                            <a asp-area="" asp-controller="Products" asp-action="Details" asp-route-id="@product.Id"
+                                               class="action-btn action-view" title="View" target="_blank">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="#" class="action-btn action-edit" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="#" class="action-btn action-delete" title="Delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state-admin">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-cookie-bite"></i>
+                    </div>
+                    <h3>No products yet</h3>
+                    <p>Start by adding your first product to the bakery.</p>
+                    <a asp-area="Admin" asp-controller="Products" asp-action="Create" class="btn-admin-primary">
+                        <i class="fas fa-plus"></i> Add First Product
+                    </a>
+                </div>
+            }
+        </div>
+    </div>
+</section>
