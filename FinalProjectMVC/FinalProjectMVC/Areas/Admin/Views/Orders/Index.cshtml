@@ -1,0 +1,112 @@
+@model List<OrderVM>
+@{
+    ViewData["Title"] = "Orders";
+    var selectedStatus = ViewBag.SelectedStatus as OrderStatus?;
+}
+
+<section class="admin-page-section">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-shopping-bag"></i> Orders
+                </h1>
+                <p class="admin-page-subtitle">Manage customer orders</p>
+            </div>
+            <div class="admin-breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right separator"></i>
+                <span class="current">Orders</span>
+            </div>
+        </div>
+
+        <!-- Status Filter Pills -->
+        <div class="status-filter-bar mt-3">
+            <a asp-area="Admin" asp-controller="Orders" asp-action="Index"
+               class="status-pill @(selectedStatus == null ? "active" : "")">
+                All
+            </a>
+            @foreach (OrderStatus status in Enum.GetValues(typeof(OrderStatus)))
+            {
+                <a asp-area="Admin" asp-controller="Orders" asp-action="Index" asp-route-status="@status"
+                   class="status-pill @(selectedStatus == status ? "active" : "")">
+                    @status.ToString()
+                </a>
+            }
+        </div>
+
+        <!-- Table -->
+        <div class="admin-table-wrapper mt-4">
+            <div class="admin-table-header">
+                <h3>
+                    @(selectedStatus.HasValue ? $"{selectedStatus} Orders" : "All Orders")
+                    <span class="badge-count">@Model.Count</span>
+                </h3>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Order #</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Date</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.OrderByDescending(o => o.OrderDate))
+                            {
+                                <tr>
+                                    <td><strong>#@order.Id</strong></td>
+                                    <td>
+                                        <strong>@order.CustomerName</strong>
+                                        <small class="d-block text-muted">@order.CustomerEmail</small>
+                                    </td>
+                                    <td>
+                                        <span class="category-badge">@order.OrderItems.Sum(i => i.Quantity) item@(order.OrderItems.Sum(i => i.Quantity) != 1 ? "s" : "")</span>
+                                    </td>
+                                    <td>
+                                        <strong class="price-value">$@order.TotalAmount.ToString("F2")</strong>
+                                    </td>
+                                    <td>
+                                        <span class="order-status order-status-@order.Status.ToString().ToLower()">
+                                            @order.StatusName
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @order.OrderDate.ToString("MMM dd, yyyy")
+                                        <small class="d-block text-muted">@order.OrderDate.ToString("HH:mm")</small>
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-area="Admin" asp-controller="Orders" asp-action="Details" asp-route-id="@order.Id"
+                                           class="action-btn action-view" title="View Details">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state-admin">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h3>No orders found</h3>
+                    <p>@(selectedStatus.HasValue ? $"No {selectedStatus} orders at this time." : "No orders have been placed yet.")</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
