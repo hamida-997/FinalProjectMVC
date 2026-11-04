@@ -1,5 +1,7 @@
 using FinalProjectMVC.Services;
 using FinalProjectMVC.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,6 +25,33 @@ builder.Services.AddSession(options =>
 });
 
 builder.Services.AddHttpContextAccessor();
+
+// Add Authentication with Cookie
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.AccessDeniedPath = "/Home/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromHours(1);
+        options.SlidingExpiration = true;
+        options.Cookie.HttpOnly = true;
+        options.Cookie.IsEssential = true;
+
+        // The API JWT lives in session. If the session is gone (e.g. app restart),
+        // the cookie is useless for API calls, so sign the user out.
+        options.Events.OnValidatePrincipal = async context =>
+        {
+            var token = context.HttpContext.Session.GetString("AuthToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                context.RejectPrincipal();
+                await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 // Register Application Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -49,6 +78,7 @@ app.UseRouting();
 
 app.UseSession();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Admin area route - must come before default route

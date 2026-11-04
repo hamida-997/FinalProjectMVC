@@ -59,19 +59,22 @@ namespace FinalProjectMVC.Controllers
         }
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
             if (_authService.IsAuthenticated())
             {
                 return RedirectToAction("Index", "Home");
             }
+            ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginVM model)
+        public async Task<IActionResult> Login(LoginVM model, string? returnUrl = null)
         {
+            ViewData["ReturnUrl"] = returnUrl;
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -94,6 +97,12 @@ namespace FinalProjectMVC.Controllers
                 }
 
                 TempData["SuccessMessage"] = $"Welcome back, {response.User?.FirstName}!";
+
+                // Only follow local URLs to prevent open redirects
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
                 return RedirectToAction("Index", "Home");
             }
             catch
@@ -104,9 +113,9 @@ namespace FinalProjectMVC.Controllers
         }
 
         [HttpGet]
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
-            _authService.Logout();
+            await _authService.LogoutAsync();
             TempData["SuccessMessage"] = "You have been logged out successfully.";
             return RedirectToAction("Index", "Home");
         }

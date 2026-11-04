@@ -1,5 +1,8 @@
 using FinalProjectMVC.ViewModels;
 using FinalProjectMVC.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using System.Security.Claims;
 
 namespace FinalProjectMVC.Services
 {
@@ -29,7 +32,7 @@ namespace FinalProjectMVC.Services
 
             if (response != null && response.IsSuccess)
             {
-                SaveUserSession(response);
+                await SaveUserSessionAsync(response);
             }
 
             return response;
@@ -41,16 +44,22 @@ namespace FinalProjectMVC.Services
 
             if (response != null && response.IsSuccess)
             {
-                SaveUserSession(response);
+                await SaveUserSessionAsync(response);
             }
 
             return response;
         }
 
-        public void Logout()
+        public async Task LogoutAsync()
         {
             _httpContextAccessor.HttpContext?.Session.Clear();
+            
+            if (_httpContextAccessor.HttpContext != null)
+            {
+                await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            }
         }
+
 
         public bool IsAuthenticated()
         {
@@ -64,27 +73,37 @@ namespace FinalProjectMVC.Services
 
         public UserInfoVM? GetCurrentUser()
         {
-            var session = _httpContextAccessor.HttpContext?.Session;
-            if (session == null || string.IsNullOrEmpty(session.GetString(AuthTokenKey)))
+            var user = _httpContextAccessor.HttpContext?.User;
+            if (user == null || !user.Identity?.IsAuthenticated == true)
             {
                 return null;
             }
 
+            var roles = user.Claims
+                .Where(c => c.Type == ClaimTypes.Role)
+                .Select(c => c.Value)
+                .ToList();
+
             return new UserInfoVM
             {
-                Id = session.GetString(UserIdKey) ?? string.Empty,
-                UserName = session.GetString(UserNameKey) ?? string.Empty,
-                Email = session.GetString(UserEmailKey) ?? string.Empty,
-                FirstName = session.GetString(UserFirstNameKey) ?? string.Empty,
-                LastName = session.GetString(UserLastNameKey) ?? string.Empty
+                Id = user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty,
+                UserName = user.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty,
+                Email = user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty,
+                FirstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty,
+                LastName = user.FindFirst(ClaimTypes.Surname)?.Value ?? string.Empty,
+                Roles = roles
             };
         }
 
-        private void SaveUserSession(AuthResponseVM response)
+        private async Task SaveUserSessionAsync(AuthResponseVM response)
         {
             var session = _httpContextAccessor.HttpContext?.Session;
-            if (session == null || response.User == null) return;
+            var httpContext = _httpContextAccessor.HttpContext;
+            
+            if (session == null || httpContext == null || response.User == null) 
+                return;
 
+            // Save to session (for API token)
             session.SetString(AuthTokenKey, response.Token ?? string.Empty);
             session.SetString(UserIdKey, response.User.Id);
             session.SetString(UserNameKey, response.User.UserName);
@@ -96,6 +115,37 @@ namespace FinalProjectMVC.Services
             {
                 session.SetString(TokenExpiresAtKey, response.ExpiresAt.Value.ToString("O"));
             }
+
+            // Create claims for cookie authentication
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, response.User.Id),
+                new Claim(ClaimTypes.Name, response.User.UserName),
+                new Claim(ClaimTypes.Email, response.User.Email),
+                new Claim(ClaimTypes.GivenName, response.User.FirstName),
+                new Claim(ClaimTypes.Surname, response.User.LastName)
+            };
+
+            // Add role claims
+            if (response.User.Roles != null)
+            {
+                foreach (var role in response.User.Roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+            }
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties
+            {
+                IsPersistent = true,
+                ExpiresUtc = response.ExpiresAt ?? DateTimeOffset.UtcNow.AddHours(1)
+            };
+
+            await httpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
         }
     }
 }

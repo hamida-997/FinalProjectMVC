@@ -6,7 +6,7 @@ namespace FinalProjectMVC.Services.Interfaces
     {
         Task<AuthResponseVM?> RegisterAsync(RegisterVM model);
         Task<AuthResponseVM?> LoginAsync(LoginVM model);
-        void Logout();
+        Task LogoutAsync();
         bool IsAuthenticated();
         string? GetToken();
         UserInfoVM? GetCurrentUser();
