@@ -1,10 +1,12 @@
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinalProjectMVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public class UsersController : Controller
     {
         private readonly IUserService _userService;

@@ -1,10 +1,12 @@
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinalProjectMVC.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Roles = "Admin,SuperAdmin")]
     public class HomeController : Controller
     {
         private readonly IProductService _productService;
@@ -26,21 +28,6 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
         public async Task<IActionResult> Index()
         {
-            // Check if user is authenticated and has admin role
-            if (!_authService.IsAuthenticated())
-            {
-                return RedirectToAction("Login", "Auth", new { area = "" });
-            }
-
-            var currentUser = _authService.GetCurrentUser();
-            var hasAdminAccess = currentUser != null &&
-                (currentUser.Roles.Contains("SuperAdmin") || currentUser.Roles.Contains("Admin"));
-
-            if (!hasAdminAccess)
-            {
-                return RedirectToAction("Index", "Home", new { area = "" });
-            }
-
             // Load dashboard stats
             var products = await _productService.GetAllProductsAsync();
             var categories = await _categoryService.GetAllCategoriesAsync();
