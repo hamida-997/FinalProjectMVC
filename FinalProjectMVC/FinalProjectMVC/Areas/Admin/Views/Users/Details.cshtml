@@ -1,0 +1,280 @@
+@model UserVM
+@{
+    ViewData["Title"] = "User Details";
+}
+
+<section class="admin-page-section">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-user"></i> User Details
+                </h1>
+                <p class="admin-page-subtitle">View user information and activity</p>
+            </div>
+            <div class="admin-breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right separator"></i>
+                <a asp-area="Admin" asp-controller="Users" asp-action="Index">Users</a>
+                <i class="fas fa-chevron-right separator"></i>
+                <span class="current">Details</span>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <!-- User Profile Card -->
+            <div class="col-lg-4">
+                <div class="details-card profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <h3>@Model.FirstName @Model.LastName</h3>
+                        <p class="text-muted">@@@Model.UserName</p>
+                        
+                        @if (Model.IsActive)
+                        {
+                            <span class="status-badge status-active">
+                                <i class="fas fa-check-circle"></i> Active
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="status-badge status-inactive">
+                                <i class="fas fa-ban"></i> Inactive
+                            </span>
+                        }
+                    </div>
+
+                    <div class="profile-roles">
+                        <h4><i class="fas fa-user-tag"></i> Roles</h4>
+                        <div class="roles-list">
+                            @foreach (var role in Model.Roles)
+                            {
+                                <span class="role-badge role-@role.ToLower()">@role</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="profile-actions">
+                        <a asp-area="Admin" asp-controller="Users" asp-action="Edit" asp-route-id="@Model.Id" 
+                           class="btn-profile-action btn-edit">
+                            <i class="fas fa-edit"></i> Edit User
+                        </a>
+                        <a asp-area="Admin" asp-controller="Users" asp-action="ChangePassword" asp-route-id="@Model.Id"
+                           class="btn-profile-action btn-password">
+                            <i class="fas fa-key"></i> Change Password
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- User Information -->
+            <div class="col-lg-8">
+                <!-- Contact Information -->
+                <div class="details-card">
+                    <h3 class="details-card-title">
+                        <i class="fas fa-address-card"></i> Contact Information
+                    </h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label><i class="fas fa-envelope"></i> Email</label>
+                            <p>@Model.Email</p>
+                        </div>
+                        <div class="detail-item">
+                            <label><i class="fas fa-phone"></i> Phone</label>
+                            <p>@(string.IsNullOrEmpty(Model.PhoneNumber) ? "Not provided" : Model.PhoneNumber)</p>
+                        </div>
+                        <div class="detail-item full-width">
+                            <label><i class="fas fa-map-marker-alt"></i> Address</label>
+                            <p>@(string.IsNullOrEmpty(Model.Address) ? "Not provided" : Model.Address)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Information -->
+                <div class="details-card mt-3">
+                    <h3 class="details-card-title">
+                        <i class="fas fa-info-circle"></i> Account Information
+                    </h3>
+                    <div class="details-grid">
+                        <div class="detail-item">
+                            <label><i class="fas fa-fingerprint"></i> User ID</label>
+                            <p><code>@Model.Id</code></p>
+                        </div>
+                        <div class="detail-item">
+                            <label><i class="fas fa-user-circle"></i> Username</label>
+                            <p>@@@Model.UserName</p>
+                        </div>
+                        <div class="detail-item">
+                            <label><i class="fas fa-calendar-plus"></i> Created At</label>
+                            <p>@Model.CreatedAt.ToString("MMMM dd, yyyy 'at' hh:mm tt")</p>
+                        </div>
+                        <div class="detail-item">
+                            <label><i class="fas fa-calendar-check"></i> Last Updated</label>
+                            <p>@(Model.UpdatedAt.HasValue ? Model.UpdatedAt.Value.ToString("MMMM dd, yyyy 'at' hh:mm tt") : "Never")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Back Button -->
+        <div class="mt-4">
+            <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn-admin-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Users
+            </a>
+        </div>
+    </div>
+</section>
+
+<style>
+    .profile-card {
+        text-align: center;
+    }
+
+    .profile-header {
+        padding-bottom: 20px;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .profile-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 40px;
+        margin: 0 auto 15px;
+        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .profile-header h3 {
+        margin: 10px 0 5px;
+        font-weight: 700;
+        color: #2d3748;
+    }
+
+    .profile-header .text-muted {
+        color: #718096;
+        margin-bottom: 15px;
+    }
+
+    .profile-roles {
+        padding: 20px 0;
+        border-bottom: 2px solid #f0f0f0;
+    }
+
+    .profile-roles h4 {
+        font-size: 0.9rem;
+        color: #718096;
+        font-weight: 600;
+        margin-bottom: 15px;
+    }
+
+    .roles-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        justify-content: center;
+    }
+
+    .profile-actions {
+        padding-top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .btn-profile-action {
+        padding: 12px 20px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: white;
+    }
+
+    .btn-edit {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .btn-edit:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+        color: white;
+    }
+
+    .btn-password {
+        background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+    }
+
+    .btn-password:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(25, 84, 123, 0.3);
+        color: white;
+    }
+
+    .details-card {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        margin-bottom: 20px;
+    }
+
+    .details-card-title {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+    }
+
+    .detail-item.full-width {
+        grid-column: 1 / -1;
+    }
+
+    .detail-item label {
+        font-size: 0.85rem;
+        color: #718096;
+        font-weight: 600;
+        margin-bottom: 5px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .detail-item p {
+        font-size: 1rem;
+        color: #2d3748;
+        margin: 0;
+        word-break: break-word;
+    }
+
+    .detail-item code {
+        background: #f7fafc;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        color: #667eea;
+    }
+</style>

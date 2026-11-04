@@ -76,6 +76,19 @@
                 </div>
 
                 <div class="admin-nav-section">
+                    <span class="admin-nav-label">Management</span>
+                    <ul class="admin-nav-list">
+                        <li>
+                            <a asp-area="Admin" asp-controller="Users" asp-action="Index"
+                               class="admin-nav-link @(currentController == "Users" ? "active" : "")">
+                                <i class="fas fa-users"></i>
+                                <span>Users</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="admin-nav-section">
                     <span class="admin-nav-label">Account</span>
                     <ul class="admin-nav-list">
                         <li>
