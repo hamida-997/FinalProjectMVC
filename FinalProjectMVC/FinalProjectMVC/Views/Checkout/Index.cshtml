@@ -1,0 +1,164 @@
+@model CheckoutVM
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<!-- Breadcrumb -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <i class="fas fa-chevron-right separator"></i>
+            <a asp-controller="Cart" asp-action="Index">Shopping Cart</a>
+            <i class="fas fa-chevron-right separator"></i>
+            <span class="current">Checkout</span>
+        </nav>
+    </div>
+</section>
+
+<section class="cart-section">
+    <div class="container">
+        <div class="cart-header">
+            <h1>Checkout</h1>
+            <p>Confirm your delivery details, then pay securely with Stripe.</p>
+        </div>
+
+        <form asp-controller="Checkout" asp-action="PlaceOrder" method="post" novalidate>
+            @Html.AntiForgeryToken()
+
+            <div class="row g-4">
+                <!-- Delivery details -->
+                <div class="col-lg-7">
+                    <div class="checkout-card">
+                        <h3><i class="fas fa-truck"></i> Delivery Details</h3>
+
+                        <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                        <div class="mb-3">
+                            <label asp-for="CustomerName" class="form-label"></label>
+                            <input asp-for="CustomerName" class="form-control" placeholder="Your full name" />
+                            <span asp-validation-for="CustomerName" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CustomerEmail" class="form-label"></label>
+                            <input asp-for="CustomerEmail" class="form-control" readonly />
+                            <small class="text-muted">Your receipt is sent to your account email.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="CustomerPhone" class="form-label"></label>
+                            <input asp-for="CustomerPhone" type="tel" class="form-control" placeholder="+1 234 567 890" />
+                            <span asp-validation-for="CustomerPhone" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="ShippingAddress" class="form-label"></label>
+                            <textarea asp-for="ShippingAddress" class="form-control" rows="3" placeholder="Street, building, city"></textarea>
+                            <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-0">
+                            <label asp-for="Notes" class="form-label"></label>
+                            <textarea asp-for="Notes" class="form-control" rows="2" placeholder="e.g. Happy Birthday message, delivery time"></textarea>
+                            <span asp-validation-for="Notes" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order summary -->
+                <div class="col-lg-5">
+                    <div class="order-summary">
+                        <h3>Your Order</h3>
+
+                        @foreach (var item in Model.Items)
+                        {
+                            <div class="summary-row">
+                                <span>@item.ProductName <small class="text-muted">× @item.Quantity</small></span>
+                                <span>$@((item.Price * item.Quantity).ToString("F2"))</span>
+                            </div>
+                        }
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-row summary-total">
+                            <span>Total to pay</span>
+                            <span>$@Model.Subtotal.ToString("F2")</span>
+                        </div>
+
+                        <p class="checkout-note">
+                            <i class="fas fa-info-circle"></i>
+                            Final prices are confirmed by our server when you continue.
+                        </p>
+
+                        <button type="submit" class="btn-checkout">
+                            <i class="fas fa-lock"></i>
+                            Continue to Payment
+                        </button>
+
+                        <a asp-controller="Cart" asp-action="Index" class="checkout-back-link">
+                            <i class="fas fa-arrow-left"></i> Back to cart
+                        </a>
+
+                        <div class="trust-badges">
+                            <div class="trust-badge-item">
+                                <i class="fab fa-stripe"></i>
+                                <span>Payments by Stripe</span>
+                            </div>
+                            <div class="trust-badge-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Card details never touch our servers</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</section>
+
+<style>
+    .checkout-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(139, 69, 19, 0.08);
+    }
+
+    .checkout-card h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .checkout-card input[readonly] {
+        background: #f7f3ee;
+    }
+
+    .checkout-note {
+        font-size: 0.85rem;
+        color: #8a7a6a;
+        margin: 15px 0 0;
+    }
+
+    .checkout-back-link {
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #8B4513;
+        text-decoration: none;
+    }
+
+    .checkout-back-link:hover {
+        text-decoration: underline;
+    }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

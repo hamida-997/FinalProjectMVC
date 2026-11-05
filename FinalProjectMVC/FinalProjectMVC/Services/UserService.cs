@@ -66,15 +66,8 @@ namespace FinalProjectMVC.Services
                 roles = model.Roles
             };
 
-            try
-            {
-                await _apiService.PutAsync<object>($"api/users/{id}", data);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            var result = await _apiService.PutWithResultAsync<object>($"api/users/{id}", data);
+            return result.Success;
         }
 
         public async Task<bool> DeleteUserAsync(string id)
@@ -90,28 +83,14 @@ namespace FinalProjectMVC.Services
                 newPassword = model.NewPassword
             };
 
-            try
-            {
-                await _apiService.PostAsync<object>($"api/users/{id}/change-password", data);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            var result = await _apiService.PostWithResultAsync<object>($"api/users/{id}/change-password", data);
+            return result.Success;
         }
 
         public async Task<bool> ToggleUserStatusAsync(string id)
         {
-            try
-            {
-                await _apiService.PostAsync<object>($"api/users/{id}/toggle-status", new { });
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
+            var result = await _apiService.PostWithResultAsync<object>($"api/users/{id}/toggle-status", new { });
+            return result.Success;
         }
 
         public async Task<List<string>> GetRolesAsync()

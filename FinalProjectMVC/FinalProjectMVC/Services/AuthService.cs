@@ -19,6 +19,8 @@ namespace FinalProjectMVC.Services
         private const string UserFirstNameKey = "UserFirstName";
         private const string UserLastNameKey = "UserLastName";
         private const string TokenExpiresAtKey = "TokenExpiresAt";
+        private const string UserPhoneKey = "UserPhone";
+        private const string UserAddressKey = "UserAddress";
 
         public AuthService(IApiService apiService, IHttpContextAccessor httpContextAccessor)
         {
@@ -91,6 +93,8 @@ namespace FinalProjectMVC.Services
                 Email = user.FindFirst(ClaimTypes.Email)?.Value ?? string.Empty,
                 FirstName = user.FindFirst(ClaimTypes.GivenName)?.Value ?? string.Empty,
                 LastName = user.FindFirst(ClaimTypes.Surname)?.Value ?? string.Empty,
+                PhoneNumber = _httpContextAccessor.HttpContext?.Session.GetString(UserPhoneKey),
+                Address = _httpContextAccessor.HttpContext?.Session.GetString(UserAddressKey),
                 Roles = roles
             };
         }
@@ -110,6 +114,8 @@ namespace FinalProjectMVC.Services
             session.SetString(UserEmailKey, response.User.Email);
             session.SetString(UserFirstNameKey, response.User.FirstName);
             session.SetString(UserLastNameKey, response.User.LastName);
+            session.SetString(UserPhoneKey, response.User.PhoneNumber ?? string.Empty);
+            session.SetString(UserAddressKey, response.User.Address ?? string.Empty);
 
             if (response.ExpiresAt.HasValue)
             {
