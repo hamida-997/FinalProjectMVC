@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Payment Not Confirmed";
+}
+
+<section class="cart-section">
+    <div class="container">
+        <div class="checkout-result">
+            <div class="checkout-result-icon warning">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h1>We couldn't confirm your payment</h1>
+            <p class="lead">@ViewData["ErrorMessage"]</p>
+            <p class="text-muted">
+                Your cart is still saved. If you were charged, please contact us before paying again.
+            </p>
+
+            <div class="checkout-result-actions">
+                <a asp-controller="Cart" asp-action="Index" class="btn-checkout text-decoration-none checkout-result-btn">
+                    <i class="fas fa-shopping-cart"></i> Back to Cart
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<partial name="_CheckoutResultStyles" />

@@ -1,0 +1,26 @@
+@{
+    ViewData["Title"] = "Payment Cancelled";
+}
+
+<section class="cart-section">
+    <div class="container">
+        <div class="checkout-result">
+            <div class="checkout-result-icon warning">
+                <i class="fas fa-times-circle"></i>
+            </div>
+            <h1>Payment cancelled</h1>
+            <p class="lead">You weren't charged. Your cart is still saved.</p>
+
+            <div class="checkout-result-actions">
+                <a asp-controller="Checkout" asp-action="Index" class="btn-checkout text-decoration-none checkout-result-btn">
+                    <i class="fas fa-lock"></i> Try Again
+                </a>
+                <a asp-controller="Cart" asp-action="Index" class="checkout-back-link">
+                    <i class="fas fa-arrow-left"></i> Back to cart
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<partial name="_CheckoutResultStyles" />

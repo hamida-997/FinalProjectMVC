@@ -57,6 +57,7 @@
                                 <th>Items</th>
                                 <th>Total</th>
                                 <th>Status</th>
+                                <th>Payment</th>
                                 <th>Date</th>
                                 <th class="text-end">Action</th>
                             </tr>
@@ -79,6 +80,12 @@
                                     <td>
                                         <span class="order-status order-status-@order.Status.ToString().ToLower()">
                                             @order.StatusName
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="payment-badge payment-@order.PaymentStatusName.ToLower()">
+                                            <i class="fas @(order.IsPaid ? "fa-check-circle" : "fa-clock")"></i>
+                                            @order.PaymentStatusName
                                         </span>
                                     </td>
                                     <td>
@@ -110,3 +117,5 @@
         </div>
     </div>
 </section>
+
+<partial name="_PaymentBadgeStyles" />

@@ -27,5 +27,10 @@ namespace FinalProjectMVC.Services
 
             return _apiService.PostWithResultAsync<CheckoutSessionVM>("api/payments/checkout", data);
         }
+
+        public Task<ApiResult<OrderVM>> ConfirmPaymentAsync(string sessionId)
+        {
+            return _apiService.PostWithResultAsync<OrderVM>("api/payments/confirm", new { sessionId });
+        }
     }
 }

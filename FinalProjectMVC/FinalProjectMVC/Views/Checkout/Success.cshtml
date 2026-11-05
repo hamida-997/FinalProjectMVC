@@ -1,0 +1,59 @@
+@model OrderVM
+@{
+    ViewData["Title"] = "Order Confirmed";
+}
+
+<section class="cart-section">
+    <div class="container">
+        <div class="checkout-result">
+            <div class="checkout-result-icon success">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <h1>Thank you for your order!</h1>
+            <p class="lead">
+                Your payment was received and order <strong>#@Model.Id</strong> is confirmed.
+            </p>
+            <p class="text-muted">A receipt from Stripe has been sent to @Model.CustomerEmail.</p>
+
+            <div class="order-summary checkout-result-summary">
+                <h3>Order #@Model.Id</h3>
+
+                @foreach (var item in Model.OrderItems)
+                {
+                    <div class="summary-row">
+                        <span>@item.ProductName <small class="text-muted">× @item.Quantity</small></span>
+                        <span>$@item.TotalPrice.ToString("F2")</span>
+                    </div>
+                }
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-row summary-total">
+                    <span>Total paid</span>
+                    <span>$@Model.TotalAmount.ToString("F2")</span>
+                </div>
+
+                <div class="summary-divider"></div>
+
+                <div class="summary-row">
+                    <span>Status</span>
+                    <span>@Model.StatusName</span>
+                </div>
+                <div class="summary-row">
+                    <span>Payment</span>
+                    <span>@Model.PaymentStatusName</span>
+                </div>
+                <div class="summary-row">
+                    <span>Deliver to</span>
+                    <span class="text-end">@Model.ShippingAddress</span>
+                </div>
+            </div>
+
+            <a asp-controller="Products" asp-action="Index" class="btn-checkout text-decoration-none checkout-result-btn">
+                <i class="fas fa-cookie-bite"></i> Continue Shopping
+            </a>
+        </div>
+    </div>
+</section>
+
+<partial name="_CheckoutResultStyles" />

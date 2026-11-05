@@ -13,6 +13,13 @@ namespace FinalProjectMVC.ViewModels
         public DateTime OrderDate { get; set; }
         public DateTime? DeliveryDate { get; set; }
         public string? Notes { get; set; }
+
+        // Payment (API PaymentStatus enum: 0 Unpaid, 1 Paid, 2 Failed, 3 Refunded)
+        public int PaymentStatus { get; set; }
+        public string PaymentStatusName { get; set; } = "Unpaid";
+        public DateTime? PaidAt { get; set; }
+        public bool IsPaid => PaymentStatus == 1;
+
         public List<OrderItemVM> OrderItems { get; set; } = new List<OrderItemVM>();
     }
 }
