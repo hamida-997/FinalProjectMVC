@@ -1,0 +1,13 @@
+@model ProductVM
+@* Compact rating line for product cards *@
+<div class="card-rating">
+    @if (Model.ReviewCount > 0)
+    {
+        <partial name="_StarRating" model="Model.AverageRating" />
+        <span class="card-rating-text">@Model.AverageRating.ToString("0.0") (@Model.ReviewCount)</span>
+    }
+    else
+    {
+        <span class="card-rating-text card-rating-empty">No reviews yet</span>
+    }
+</div>

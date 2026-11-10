@@ -178,6 +178,7 @@
                                         <h3 class="product-card-name">
                                             <a asp-action="Details" asp-route-id="@product.Id">@product.Name</a>
                                         </h3>
+                                        <partial name="_CardRating" model="product" />
                                         @if (!string.IsNullOrEmpty(product.Description))
                                         {
                                             <p class="product-card-desc">

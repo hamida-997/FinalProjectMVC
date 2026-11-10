@@ -4678,3 +4678,24 @@ select.form-control-admin {
     background: var(--bg-cream);
     border-radius: 10px;
 }
+
+/* Product card rating (reviews) */
+.card-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 4px 0 8px;
+    font-size: 0.85rem;
+}
+
+.card-rating .stars i {
+    color: #F5A623;
+}
+
+.card-rating-text {
+    color: #8a7a6a;
+}
+
+.card-rating-empty {
+    font-style: italic;
+}

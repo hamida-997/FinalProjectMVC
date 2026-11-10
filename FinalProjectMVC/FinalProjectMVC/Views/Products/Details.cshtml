@@ -353,6 +353,7 @@
                                 <h3 class="product-card-name">
                                     <a asp-action="Details" asp-route-id="@related.Id">@related.Name</a>
                                 </h3>
+                                <partial name="_CardRating" model="related" />
                                 <div class="product-card-footer">
                                     <span class="product-card-price">$@related.Price.ToString("F2")</span>
                                     <form asp-controller="Cart" asp-action="AddToCart" method="post" style="margin: 0;">
