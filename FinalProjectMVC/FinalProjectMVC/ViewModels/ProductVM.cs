@@ -13,5 +13,9 @@ namespace FinalProjectMVC.ViewModels
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
         public List<ProductImageVM> Images { get; set; } = new List<ProductImageVM>();
+
+        // From the API; 0 when there are no reviews
+        public double AverageRating { get; set; }
+        public int ReviewCount { get; set; }
     }
 }

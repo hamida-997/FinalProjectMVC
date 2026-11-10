@@ -83,14 +83,18 @@
 
                     <!-- Rating -->
                     <div class="product-rating">
-                        <div class="stars">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star-half-alt"></i>
-                        </div>
-                        <span class="rating-text">4.5 (124 reviews)</span>
+                        @if (product.ReviewCount > 0)
+                        {
+                            <partial name="_StarRating" model="product.AverageRating" />
+                            <a href="#reviews" class="rating-text">
+                                @product.AverageRating.ToString("0.0") (@product.ReviewCount review@(product.ReviewCount != 1 ? "s" : ""))
+                            </a>
+                        }
+                        else
+                        {
+                            <partial name="_StarRating" model="0d" />
+                            <a href="#reviews" class="rating-text">No reviews yet</a>
+                        }
                     </div>
 
                     <!-- Short Description -->
@@ -285,6 +289,9 @@
         </div>
     </div>
 </section>
+
+<!-- Reviews Section -->
+<partial name="_ProductReviews" model="Model" />
 
 <!-- Related Products Section -->
 @if (Model.RelatedProducts.Any())

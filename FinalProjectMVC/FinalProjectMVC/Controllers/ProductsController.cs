@@ -8,11 +8,13 @@ namespace FinalProjectMVC.Controllers
     {
         private readonly IProductService _productService;
         private readonly ICategoryService _categoryService;
+        private readonly IReviewService _reviewService;
 
-        public ProductsController(IProductService productService, ICategoryService categoryService)
+        public ProductsController(IProductService productService, ICategoryService categoryService, IReviewService reviewService)
         {
             _productService = productService;
             _categoryService = categoryService;
+            _reviewService = reviewService;
         }
 
         public async Task<IActionResult> Index(int? categoryId, string? search, string? sortBy)
@@ -78,8 +80,19 @@ namespace FinalProjectMVC.Controllers
                 RelatedProducts = relatedProducts
                     .Where(p => p.Id != product.Id && p.IsAvailable)
                     .Take(4)
-                    .ToList()
+                    .ToList(),
+                Reviews = await _reviewService.GetProductReviewsAsync(product.Id)
             };
+
+            // Only ask the API about eligibility when someone is logged in
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                model.Eligibility = await _reviewService.GetEligibilityAsync(product.Id);
+                if (model.Eligibility?.ExistingReviewId is int myReviewId)
+                {
+                    model.MyReview = model.Reviews.FirstOrDefault(r => r.Id == myReviewId);
+                }
+            }
 
             return View(model);
         }
