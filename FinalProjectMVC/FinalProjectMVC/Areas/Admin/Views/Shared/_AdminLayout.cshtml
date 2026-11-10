@@ -13,6 +13,10 @@
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        /* Logout is a form button now; make it look like the other sidebar links */
+        .logout-btn { width: 100%; background: none; border: none; text-align: left; font: inherit; cursor: pointer; }
+    </style>
 </head>
 <body class="admin-body">
     <div class="admin-wrapper">
@@ -112,10 +116,13 @@
                             </a>
                         </li>
                         <li>
-                            <a asp-area="" asp-controller="Auth" asp-action="Logout" class="admin-nav-link text-danger-soft">
-                                <i class="fas fa-sign-out-alt"></i>
-                                <span>Logout</span>
-                            </a>
+                            <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="admin-nav-link text-danger-soft logout-btn">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span>Logout</span>
+                                </button>
+                            </form>
                         </li>
                     </ul>
                 </div>
@@ -130,17 +137,13 @@
                     <i class="fas fa-bars"></i>
                 </button>
 
-                <div class="topbar-search">
+                <form class="topbar-search" method="get" asp-area="Admin" asp-controller="Products" asp-action="Index" role="search">
                     <i class="fas fa-search"></i>
-                    <input type="text" placeholder="Search..." class="topbar-search-input" />
-                </div>
+                    <input type="search" name="search" placeholder="Search products..." class="topbar-search-input"
+                           value="@(currentController == "Products" ? Context.Request.Query["search"].ToString() : "")" aria-label="Search products" />
+                </form>
 
                 <div class="topbar-actions">
-                    <button class="topbar-icon-btn" title="Notifications">
-                        <i class="fas fa-bell"></i>
-                        <span class="notification-dot"></span>
-                    </button>
-
                     <div class="dropdown">
                         <button class="topbar-user" data-bs-toggle="dropdown" aria-expanded="false">
                             <div class="topbar-user-avatar">
@@ -148,7 +151,7 @@
                             </div>
                             <div class="topbar-user-info d-none d-md-block">
                                 <span class="topbar-user-name">@currentUser</span>
-                                <span class="topbar-user-role">Administrator</span>
+                                <span class="topbar-user-role">@(User.IsInRole("SuperAdmin") ? "Super Admin" : "Administrator")</span>
                             </div>
                             <i class="fas fa-chevron-down d-none d-md-block"></i>
                         </button>
@@ -164,9 +167,12 @@
                                 </a>
                             </li>
                             <li>
-                                <a class="dropdown-item text-danger" asp-area="" asp-controller="Auth" asp-action="Logout">
-                                    <i class="fas fa-sign-out-alt me-2"></i>Logout
-                                </a>
+                                <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post" class="m-0">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="dropdown-item text-danger">
+                                        <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                    </button>
+                                </form>
                             </li>
                         </ul>
                     </div>
@@ -190,7 +196,9 @@
                 }
                 @if (TempData["ErrorMessage"] != null)
                 {
-                    <div class="success-toast" id="errorToast" style="background: linear-gradient(135deg, #DC3545, #C82333);">
+                    @* Errors stay longer than success messages, and can be closed *@
+                    <div class="success-toast" id="errorToast" style="background: linear-gradient(135deg, #DC3545, #C82333); cursor: pointer;"
+                         onclick="this.remove()" title="Click to close">
                         <i class="fas fa-exclamation-circle"></i>
                         <span>@TempData["ErrorMessage"]</span>
                     </div>
@@ -198,7 +206,7 @@
                         setTimeout(() => {
                             const toast = document.getElementById('errorToast');
                             if (toast) toast.remove();
-                        }, 3500);
+                        }, 7000);
                     </script>
                 }
 
@@ -210,7 +218,10 @@
         <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
     </div>
 
+    @* jQuery is required by _ValidationScriptsPartial (jquery.validate) on the admin forms *@
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/password-toggle.js" asp-append-version="true"></script>
     <script>
         function toggleSidebar() {
             const sidebar = document.getElementById('adminSidebar');

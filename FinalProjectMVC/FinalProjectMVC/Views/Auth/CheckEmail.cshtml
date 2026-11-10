@@ -1,0 +1,35 @@
+@{
+    ViewData["Title"] = "Check Your Email";
+    var email = ViewData["Email"] as string;
+    var message = ViewData["Message"] as string;
+}
+
+<section class="auth-section">
+    <div class="container">
+        <div class="auth-status-card">
+            <div class="auth-status-icon info"><i class="fas fa-envelope-open-text"></i></div>
+            <h1>Check your email</h1>
+            @if (!string.IsNullOrEmpty(message))
+            {
+                <p class="lead">@message</p>
+            }
+            <p>
+                We sent a confirmation link to
+                <strong>@(string.IsNullOrEmpty(email) ? "your email address" : email)</strong>.
+                Click the link to activate your account, then log in.
+            </p>
+            <p class="text-muted small">Didn't get it? Check your spam folder. The link expires in 24 hours.</p>
+
+            <div class="auth-status-actions">
+                <a asp-controller="Auth" asp-action="Login" class="btn-auth-submit text-decoration-none">
+                    <i class="fas fa-sign-in-alt"></i> Go to Login
+                </a>
+                <a asp-controller="Auth" asp-action="ResendConfirmation" asp-route-email="@email" class="auth-link d-block mt-3">
+                    <i class="fas fa-paper-plane"></i> Resend confirmation email
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<partial name="_AuthStatusStyles" />

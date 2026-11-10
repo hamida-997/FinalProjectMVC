@@ -32,7 +32,7 @@
             {
                 <a asp-area="Admin" asp-controller="Orders" asp-action="Index" asp-route-status="@status"
                    class="status-pill @(selectedStatus == status ? "active" : "")">
-                    @status.ToString()
+                    @OrderStatusText.Label(status)
                 </a>
             }
         </div>
@@ -41,8 +41,8 @@
         <div class="admin-table-wrapper mt-4">
             <div class="admin-table-header">
                 <h3>
-                    @(selectedStatus.HasValue ? $"{selectedStatus} Orders" : "All Orders")
-                    <span class="badge-count">@Model.Count</span>
+                    @(selectedStatus.HasValue ? $"{OrderStatusText.Label(selectedStatus.Value)} Orders" : "All Orders")
+                    <span class="badge-count">@(ViewData.GetPager()?.TotalItems ?? Model.Count)</span>
                 </h3>
             </div>
 
@@ -63,7 +63,8 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var order in Model.OrderByDescending(o => o.OrderDate))
+                            @* Already sorted newest-first by the controller, before paging *@
+                            @foreach (var order in Model)
                             {
                                 <tr>
                                     <td><strong>#@order.Id</strong></td>
@@ -76,6 +77,12 @@
                                     </td>
                                     <td>
                                         <strong class="price-value">$@order.TotalAmount.ToString("F2")</strong>
+                                        @if (order.HasDiscount)
+                                        {
+                                            <small class="d-block" style="color: #10B981;" title="Subtotal $@order.Subtotal.ToString("F2")">
+                                                <i class="fas fa-ticket-alt"></i> @order.DiscountCode −$@order.DiscountAmount.ToString("F2")
+                                            </small>
+                                        }
                                     </td>
                                     <td>
                                         <span class="order-status order-status-@order.Status.ToString().ToLower()">
@@ -103,6 +110,7 @@
                         </tbody>
                     </table>
                 </div>
+                <partial name="_Pagination" />
             }
             else
             {
@@ -111,7 +119,7 @@
                         <i class="fas fa-shopping-bag"></i>
                     </div>
                     <h3>No orders found</h3>
-                    <p>@(selectedStatus.HasValue ? $"No {selectedStatus} orders at this time." : "No orders have been placed yet.")</p>
+                    <p>@(selectedStatus.HasValue ? $"No {OrderStatusText.Label(selectedStatus.Value).ToLower()} orders at this time." : "No orders have been placed yet.")</p>
                 </div>
             }
         </div>

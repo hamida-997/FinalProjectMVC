@@ -29,7 +29,7 @@
                 <div class="details-card profile-card">
                     <div class="profile-header">
                         <div class="profile-avatar">
-                            <i class="fas fa-user"></i>
+                            @((string.IsNullOrEmpty(Model.FirstName) ? Model.UserName : Model.FirstName) is { Length: > 0 } n ? n[..1].ToUpper() : "?")
                         </div>
                         <h3>@Model.FirstName @Model.LastName</h3>
                         <p class="text-muted">@@@Model.UserName</p>
@@ -144,14 +144,15 @@
         width: 100px;
         height: 100px;
         border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, #D2691E, #8B4513);
         display: flex;
         align-items: center;
         justify-content: center;
         color: white;
         font-size: 40px;
+        font-weight: 700;
         margin: 0 auto 15px;
-        box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        box-shadow: 0 8px 20px rgba(139, 69, 19, 0.25);
     }
 
     .profile-header h3 {
@@ -205,38 +206,25 @@
         color: white;
     }
 
-    .btn-edit {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
+    .btn-edit { background: var(--secondary-color); }
+    .btn-edit:hover { background: #6d3510; color: white; }
 
-    .btn-edit:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
-        color: white;
-    }
-
-    .btn-password {
-        background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-    }
-
-    .btn-password:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(25, 84, 123, 0.3);
-        color: white;
-    }
+    .btn-password { background: #fff; color: var(--secondary-color); border: 2px solid var(--primary-color); }
+    .btn-password:hover { background: var(--primary-color); color: white; }
 
     .details-card {
         background: white;
-        border-radius: 12px;
+        border-radius: 15px;
         padding: 25px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        box-shadow: var(--shadow);
         margin-bottom: 20px;
     }
 
     .details-card-title {
         font-size: 1.2rem;
         font-weight: 700;
-        color: #2d3748;
+        font-family: 'Georgia', serif;
+        color: var(--secondary-color);
         margin-bottom: 20px;
         display: flex;
         align-items: center;
@@ -275,6 +263,8 @@
         padding: 4px 8px;
         border-radius: 4px;
         font-size: 0.9rem;
-        color: #667eea;
+        color: var(--secondary-color);
     }
 </style>
+
+<partial name="_UserStyles" />

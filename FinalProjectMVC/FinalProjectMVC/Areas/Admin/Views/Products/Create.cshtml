@@ -1,6 +1,9 @@
 @model CreateProductVM
 @{
     ViewData["Title"] = "Create Product";
+    var summaryErrors = ViewData.ModelState[string.Empty]?.Errors ?? new Microsoft.AspNetCore.Mvc.ModelBinding.ModelErrorCollection();
+    var imageErrors = ViewData.ModelState[nameof(CreateProductVM.Images)]?.Errors ?? new Microsoft.AspNetCore.Mvc.ModelBinding.ModelErrorCollection();
+    var wasPosted = Context.Request.Method == "POST";
 }
 
 <section class="admin-page-section">
@@ -23,124 +26,137 @@
             </div>
         </div>
 
-        <form asp-action="Create" method="post">
+        @* Only general errors here; field errors show under their fields *@
+        @if (summaryErrors.Count > 0)
+        {
+            <div class="product-form-alert mt-3">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    @foreach (var error in summaryErrors)
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            </div>
+        }
+
+        <form asp-area="Admin" asp-controller="Products" asp-action="Create" method="post" enctype="multipart/form-data" id="productForm" novalidate>
             @Html.AntiForgeryToken()
 
-            <div class="row g-4 mt-2">
-                <!-- Main Info -->
-                <div class="col-lg-8">
+            <div class="row g-4 mt-1">
+                <!-- Left column -->
+                <div class="col-lg-7 col-xl-8">
                     <div class="admin-panel">
                         <div class="admin-panel-header">
                             <h3><i class="fas fa-info-circle"></i> Product Information</h3>
                         </div>
                         <div class="admin-panel-body">
-                            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
-                            {
-                                <div class="alert-danger mb-3">
-                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                    <div asp-validation-summary="ModelOnly"></div>
-                                </div>
-                            }
-
                             <div class="form-group-admin">
-                                <label asp-for="Name" class="form-label-admin"></label>
-                                <input asp-for="Name" class="form-control-admin" placeholder="e.g. Chocolate Lava Cake" />
-                                <span asp-validation-for="Name" class="text-danger"></span>
+                                <label asp-for="Name" class="form-label-admin">Product Name <span class="req">*</span></label>
+                                <input asp-for="Name" class="form-control-admin" placeholder="e.g. Chocolate Lava Cake" maxlength="200" autofocus />
+                                <span asp-validation-for="Name" class="field-error"></span>
                             </div>
 
-                            <div class="form-group-admin">
-                                <label asp-for="Description" class="form-label-admin"></label>
-                                <textarea asp-for="Description" class="form-control-admin" rows="5"
-                                          placeholder="Describe this product..."></textarea>
-                                <span asp-validation-for="Description" class="text-danger"></span>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="form-group-admin">
-                                        <label asp-for="Price" class="form-label-admin"></label>
-                                        <div class="input-with-prefix">
-                                            <span class="input-prefix">$</span>
-                                            <input asp-for="Price" type="number" step="0.01" min="0.01" class="form-control-admin" placeholder="0.00" />
-                                        </div>
-                                        <span asp-validation-for="Price" class="text-danger"></span>
-                                    </div>
+                            <div class="form-group-admin mb-0">
+                                <div class="d-flex justify-content-between align-items-baseline">
+                                    <label asp-for="Description" class="form-label-admin"></label>
+                                    <small class="text-muted"><span id="descCount">0</span> / 1000</small>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="form-group-admin">
-                                        <label asp-for="StockQuantity" class="form-label-admin"></label>
-                                        <input asp-for="StockQuantity" type="number" min="0" class="form-control-admin" placeholder="0" />
-                                        <span asp-validation-for="StockQuantity" class="text-danger"></span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Sidebar -->
-                <div class="col-lg-4">
-                    <div class="admin-panel">
-                        <div class="admin-panel-header">
-                            <h3><i class="fas fa-cog"></i> Settings</h3>
-                        </div>
-                        <div class="admin-panel-body">
-                            <div class="form-group-admin">
-                                <label asp-for="CategoryId" class="form-label-admin"></label>
-                                <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control-admin">
-                                    <option value="">-- Select Category --</option>
-                                </select>
-                                <span asp-validation-for="CategoryId" class="text-danger"></span>
-                            </div>
-
-                            <div class="form-group-admin">
-                                <div class="form-check-admin">
-                                    <input asp-for="IsAvailable" class="form-check-input-admin" />
-                                    <label asp-for="IsAvailable" class="form-check-label-admin">
-                                        Available for Sale
-                                        <small>(Visible to customers)</small>
-                                    </label>
-                                </div>
+                                <textarea asp-for="Description" class="form-control-admin" rows="6" maxlength="1000"
+                                          placeholder="Ingredients, flavour, size, what makes it special..."></textarea>
+                                <span asp-validation-for="Description" class="field-error"></span>
                             </div>
                         </div>
                     </div>
 
                     <div class="admin-panel mt-4">
                         <div class="admin-panel-header">
-                            <h3><i class="fas fa-lightbulb"></i> Tips</h3>
+                            <h3><i class="fas fa-tags"></i> Pricing &amp; Stock</h3>
                         </div>
                         <div class="admin-panel-body">
-                            <div class="tip-item">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <div>
-                                    <strong>Clear names</strong>
-                                    <p>Use descriptive product names that attract customers.</p>
+                            <div class="row g-3">
+                                <div class="col-sm-6">
+                                    <label asp-for="Price" class="form-label-admin">Price <span class="req">*</span></label>
+                                    <div class="input-with-prefix">
+                                        <span class="input-prefix">$</span>
+                                        <input asp-for="Price" type="number" step="0.01" min="0.01" class="form-control-admin" placeholder="0.00" />
+                                    </div>
+                                    <span asp-validation-for="Price" class="field-error"></span>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label asp-for="StockQuantity" class="form-label-admin">Stock Quantity <span class="req">*</span></label>
+                                    <input asp-for="StockQuantity" type="number" step="1" min="0" class="form-control-admin" placeholder="e.g. 20" />
+                                    <span asp-validation-for="StockQuantity" class="field-error"></span>
                                 </div>
                             </div>
-                            <div class="tip-item">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <div>
-                                    <strong>Good description</strong>
-                                    <p>Mention ingredients, flavor, and what makes it special.</p>
-                                </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right column -->
+                <div class="col-lg-5 col-xl-4">
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h3><i class="fas fa-images"></i> Photos <span class="req">*</span></h3>
+                        </div>
+                        <div class="admin-panel-body">
+                            <label for="imageInput" class="photo-dropzone @(imageErrors.Count > 0 ? "has-error" : "")" id="dropzone">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <strong>Click or drag photos here</strong>
+                                <small>JPG, PNG, GIF or WEBP · max 5 MB each · up to @CreateProductVM.MaxImages</small>
+                            </label>
+                            <input type="file" id="imageInput" name="Images" multiple
+                                   accept=".jpg,.jpeg,.png,.gif,.webp,image/*" class="visually-hidden" />
+                            <input type="hidden" name="PrimaryImageIndex" id="primaryIndex" value="0" />
+
+                            <div class="photo-previews" id="previews"></div>
+                            <p class="photo-hint" id="photoHint">
+                                Add up to @CreateProductVM.MaxImages photos. Click a photo to make it the <strong>main</strong> photo;
+                                the others are shown on the product page.
+                            </p>
+
+                            @foreach (var error in imageErrors)
+                            {
+                                <div class="field-error d-block">@error.ErrorMessage</div>
+                            }
+                            @if (wasPosted && imageErrors.Count == 0)
+                            {
+                                <div class="photo-reselect"><i class="fas fa-info-circle"></i> Please select your photos again.</div>
+                            }
+                            <div class="field-error d-block" id="photoClientError"></div>
+                        </div>
+                    </div>
+
+                    <div class="admin-panel mt-4">
+                        <div class="admin-panel-header">
+                            <h3><i class="fas fa-cog"></i> Settings</h3>
+                        </div>
+                        <div class="admin-panel-body">
+                            <div class="form-group-admin">
+                                <label asp-for="CategoryId" class="form-label-admin">Category <span class="req">*</span></label>
+                                <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control-admin">
+                                    <option value="">Select a category</option>
+                                </select>
+                                <span asp-validation-for="CategoryId" class="field-error"></span>
                             </div>
-                            <div class="tip-item">
-                                <i class="fas fa-check-circle text-success"></i>
-                                <div>
-                                    <strong>Add images later</strong>
-                                    <p>You can upload product images after creating it.</p>
-                                </div>
+
+                            <div class="form-check-admin mb-0">
+                                <input asp-for="IsAvailable" class="form-check-input-admin" />
+                                <label asp-for="IsAvailable" class="form-check-label-admin">
+                                    Available for sale
+                                    <small>Shown to customers in the shop</small>
+                                </label>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="form-actions-full">
+            <div class="form-actions-full product-actions">
                 <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn-admin-secondary">
                     <i class="fas fa-times"></i> Cancel
                 </a>
-                <button type="submit" class="btn-admin-primary">
+                <button type="submit" class="btn-admin-primary" id="submitBtn">
                     <i class="fas fa-check"></i> Create Product
                 </button>
             </div>
@@ -148,6 +164,176 @@
     </div>
 </section>
 
+<style>
+    .req { color: #DC3545; font-weight: 700; }
+    .field-error { color: #DC3545; font-size: 0.85rem; margin-top: 6px; display: block; }
+    .field-error:empty { display: none !important; }
+
+    .product-form-alert {
+        display: flex; gap: 12px; align-items: flex-start;
+        background: #FFE4E6; border: 1px solid #FFBDC2; color: #9F1239;
+        border-radius: 12px; padding: 14px 18px;
+    }
+    .product-form-alert i { margin-top: 3px; }
+
+    .input-with-prefix .input-prefix { top: 50%; }
+
+    .photo-dropzone {
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 6px; width: 100%; padding: 28px 16px; margin: 0;
+        border: 2px dashed #D4A574; border-radius: 14px; background: #FFF9F0;
+        color: #8B4513; text-align: center; cursor: pointer; transition: all 0.2s ease;
+    }
+    .photo-dropzone i { font-size: 2.2rem; }
+    .photo-dropzone small { color: #8a7a6a; }
+    .photo-dropzone:hover, .photo-dropzone.dragover { background: #FFF1DD; border-color: #8B4513; }
+    .photo-dropzone.has-error { border-color: #DC3545; background: #FFF5F5; }
+
+    .photo-previews {
+        display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 15px;
+    }
+    .photo-previews:empty { display: none; }
+    .photo-thumb {
+        position: relative; aspect-ratio: 1 / 1; border-radius: 10px; overflow: hidden;
+        border: 2px solid #F0E6D9; background: #f7f3ee;
+    }
+    .photo-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .photo-thumb.cover { border-color: #D4A574; }
+    .photo-thumb { cursor: pointer; }
+    .photo-thumb:not(.cover):hover { border-color: #D4A574; }
+    .photo-thumb:not(.cover):hover::after {
+        content: 'Set as main'; position: absolute; left: 0; right: 0; bottom: 0;
+        background: rgba(139, 69, 19, 0.85); color: #fff; font-size: 0.75rem;
+        font-weight: 600; text-align: center; padding: 4px 0;
+    }
+    .photo-thumb.cover { border-width: 3px; border-color: #8B4513; }
+    .photo-thumb .cover-badge {
+        position: absolute; left: 6px; top: 6px; background: #8B4513; color: #fff;
+        font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 10px;
+    }
+    .photo-thumb .remove-btn {
+        position: absolute; right: 6px; top: 6px; width: 26px; height: 26px; border-radius: 50%;
+        border: none; background: rgba(0,0,0,0.6); color: #fff; font-size: 0.8rem;
+        display: flex; align-items: center; justify-content: center; cursor: pointer;
+    }
+    .photo-thumb .remove-btn:hover { background: #DC3545; }
+    .photo-hint { font-size: 0.85rem; color: #8a7a6a; margin: 12px 0 0; }
+    .photo-reselect { font-size: 0.85rem; color: #92400E; background: #FEF3C7; border-radius: 8px; padding: 8px 12px; margin-top: 10px; }
+
+    /* The global .admin-panel has height:100%, which stretches stacked panels on this page */
+    #productForm .admin-panel { height: auto; }
+    .product-actions { margin-top: 25px; }
+</style>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        (function () {
+            const MAX = @CreateProductVM.MaxImages;
+            const MAX_BYTES = @CreateProductVM.MaxImageBytes;
+            const ALLOWED = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+
+            const input = document.getElementById('imageInput');
+            const dropzone = document.getElementById('dropzone');
+            const previews = document.getElementById('previews');
+            const clientError = document.getElementById('photoClientError');
+            const form = document.getElementById('productForm');
+            const submitBtn = document.getElementById('submitBtn');
+
+            // Keep our own list so photos can be added in several picks and removed one by one
+            let files = [];
+            let primary = 0;
+            const primaryInput = document.getElementById('primaryIndex');
+
+            function ext(name) { const i = name.lastIndexOf('.'); return i >= 0 ? name.slice(i).toLowerCase() : ''; }
+
+            function addFiles(list) {
+                clientError.textContent = '';
+                const problems = [];
+                for (const f of list) {
+                    if (!ALLOWED.includes(ext(f.name))) { problems.push(`${f.name}: not a supported image`); continue; }
+                    if (f.size > MAX_BYTES) { problems.push(`${f.name}: larger than 5 MB`); continue; }
+                    if (files.length >= MAX) { problems.push(`Only ${MAX} photos allowed`); break; }
+                    files.push(f);
+                }
+                if (problems.length) clientError.textContent = problems.join(' · ');
+                sync();
+            }
+
+            function sync() {
+                // Put the kept files back into the real input so they are posted with the form
+                const dt = new DataTransfer();
+                files.forEach(f => dt.items.add(f));
+                input.files = dt.files;
+
+                if (primary >= files.length) primary = 0;
+                primaryInput.value = primary;
+
+                previews.innerHTML = '';
+                files.forEach((f, i) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'photo-thumb' + (i === primary ? ' cover' : '');
+                    thumb.title = i === primary ? 'Main photo' : 'Click to make this the main photo';
+                    thumb.onclick = () => { primary = i; sync(); };
+                    const img = document.createElement('img');
+                    img.src = URL.createObjectURL(f);
+                    img.alt = f.name;
+                    img.onload = () => URL.revokeObjectURL(img.src);
+                    thumb.appendChild(img);
+                    if (i === primary) {
+                        const badge = document.createElement('span');
+                        badge.className = 'cover-badge';
+                        badge.textContent = 'Main';
+                        thumb.appendChild(badge);
+                    }
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'remove-btn';
+                    btn.title = 'Remove';
+                    btn.innerHTML = '<i class="fas fa-times"></i>';
+                    btn.onclick = (e) => {
+                        e.stopPropagation();
+                        files.splice(i, 1);
+                        // Keep the same photo as main when an earlier one is removed
+                        if (i < primary) primary--;
+                        else if (i === primary) primary = 0;
+                        sync();
+                    };
+                    thumb.appendChild(btn);
+                    previews.appendChild(thumb);
+                });
+                dropzone.classList.toggle('has-error', false);
+            }
+
+            input.addEventListener('change', () => { addFiles(Array.from(input.files)); });
+
+            ['dragenter', 'dragover'].forEach(evt => dropzone.addEventListener(evt, e => {
+                e.preventDefault(); dropzone.classList.add('dragover');
+            }));
+            ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, e => {
+                e.preventDefault(); dropzone.classList.remove('dragover');
+            }));
+            dropzone.addEventListener('drop', e => addFiles(Array.from(e.dataTransfer.files)));
+
+            form.addEventListener('submit', e => {
+                if (files.length === 0) {
+                    e.preventDefault();
+                    clientError.textContent = 'Please add at least one product photo.';
+                    dropzone.classList.add('has-error');
+                    dropzone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return;
+                }
+                if (window.jQuery && $(form).valid && !$(form).valid()) return;
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+            });
+
+            // Description character counter
+            const desc = document.getElementById('Description');
+            const count = document.getElementById('descCount');
+            const updateCount = () => count.textContent = desc.value.length;
+            desc.addEventListener('input', updateCount);
+            updateCount();
+        })();
+    </script>
 }

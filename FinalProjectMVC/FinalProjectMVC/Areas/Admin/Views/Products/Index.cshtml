@@ -1,6 +1,11 @@
 @model List<ProductVM>
 @{
     ViewData["Title"] = "Products";
+    var all = ViewBag.AllProducts as List<ProductVM> ?? Model;
+    var search = ViewBag.Search as string;
+    var stock = ViewBag.Stock as string;
+    var isFiltered = !string.IsNullOrWhiteSpace(search) || !string.IsNullOrEmpty(stock);
+    var stockLabel = stock switch { "out" => "Out of Stock", "low" => "Low Stock", "available" => "Available", "hidden" => "Hidden", _ => null };
 }
 
 <section class="admin-page-section">
@@ -26,31 +31,31 @@
             </div>
         </div>
 
-        <!-- Stats Row -->
+        <!-- Stats Row (click a card to filter) -->
         <div class="row g-3 mt-3">
             <div class="col-md-3 col-6">
-                <div class="mini-stat-card">
+                <a asp-action="Index" asp-route-search="@search" class="mini-stat-card mini-stat-link @(string.IsNullOrEmpty(stock) ? "active" : "")">
                     <span class="mini-stat-label">Total</span>
-                    <span class="mini-stat-value">@Model.Count</span>
-                </div>
+                    <span class="mini-stat-value">@all.Count</span>
+                </a>
             </div>
             <div class="col-md-3 col-6">
-                <div class="mini-stat-card">
+                <a asp-action="Index" asp-route-search="@search" asp-route-stock="available" class="mini-stat-card mini-stat-link @(stock == "available" ? "active" : "")">
                     <span class="mini-stat-label">Available</span>
-                    <span class="mini-stat-value text-success">@Model.Count(p => p.IsAvailable)</span>
-                </div>
+                    <span class="mini-stat-value text-success">@all.Count(p => p.IsAvailable)</span>
+                </a>
             </div>
             <div class="col-md-3 col-6">
-                <div class="mini-stat-card">
+                <a asp-action="Index" asp-route-search="@search" asp-route-stock="out" class="mini-stat-card mini-stat-link @(stock == "out" ? "active" : "")">
                     <span class="mini-stat-label">Out of Stock</span>
-                    <span class="mini-stat-value text-danger">@Model.Count(p => p.StockQuantity == 0)</span>
-                </div>
+                    <span class="mini-stat-value text-danger">@all.Count(p => p.StockQuantity == 0)</span>
+                </a>
             </div>
             <div class="col-md-3 col-6">
-                <div class="mini-stat-card">
+                <a asp-action="Index" asp-route-search="@search" asp-route-stock="low" class="mini-stat-card mini-stat-link @(stock == "low" ? "active" : "")">
                     <span class="mini-stat-label">Low Stock</span>
-                    <span class="mini-stat-value text-warning">@Model.Count(p => p.StockQuantity > 0 && p.StockQuantity < 10)</span>
-                </div>
+                    <span class="mini-stat-value text-warning">@all.Count(p => p.StockQuantity > 0 && p.StockQuantity < 10)</span>
+                </a>
             </div>
         </div>
 
@@ -58,9 +63,21 @@
         <div class="admin-table-wrapper mt-4">
             <div class="admin-table-header">
                 <h3>
-                    All Products
-                    <span class="badge-count">@Model.Count</span>
+                    @(stockLabel ?? "All") Products
+                    <span class="badge-count">@(ViewData.GetPager()?.TotalItems ?? Model.Count)</span>
                 </h3>
+                <form method="get" asp-action="Index" class="product-search">
+                    @if (!string.IsNullOrEmpty(stock))
+                    {
+                        <input type="hidden" name="stock" value="@stock" />
+                    }
+                    <i class="fas fa-search"></i>
+                    <input type="search" name="search" value="@search" placeholder="Name or category..." class="form-control-admin" />
+                    @if (isFiltered)
+                    {
+                        <a asp-action="Index" class="btn-admin-secondary" title="Clear filters"><i class="fas fa-times"></i> Clear</a>
+                    }
+                </form>
             </div>
 
             @if (Model.Any())
@@ -174,6 +191,7 @@
                         </tbody>
                     </table>
                 </div>
+                <partial name="_Pagination" />
             }
             else
             {
@@ -181,13 +199,35 @@
                     <div class="empty-state-icon">
                         <i class="fas fa-cookie-bite"></i>
                     </div>
-                    <h3>No products yet</h3>
-                    <p>Start by adding your first product to the bakery.</p>
-                    <a asp-area="Admin" asp-controller="Products" asp-action="Create" class="btn-admin-primary">
-                        <i class="fas fa-plus"></i> Add First Product
-                    </a>
+                    @if (isFiltered)
+                    {
+                        <h3>No matching products</h3>
+                        <p>No products match these filters.</p>
+                        <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn-admin-secondary">
+                            <i class="fas fa-redo"></i> Clear Filters
+                        </a>
+                    }
+                    else
+                    {
+                        <h3>No products yet</h3>
+                        <p>Start by adding your first product to the bakery.</p>
+                        <a asp-area="Admin" asp-controller="Products" asp-action="Create" class="btn-admin-primary">
+                            <i class="fas fa-plus"></i> Add First Product
+                        </a>
+                    }
                 </div>
             }
         </div>
     </div>
 </section>
+
+<style>
+    .mini-stat-link { display: flex; text-decoration: none; border: 2px solid transparent; }
+    .mini-stat-link.active { border-color: var(--primary-color); }
+
+    .admin-table-header { flex-wrap: wrap; gap: 12px; }
+    .product-search { position: relative; display: flex; align-items: center; gap: 8px; margin: 0; }
+    .product-search > i { position: absolute; left: 14px; color: var(--text-light); pointer-events: none; }
+    .product-search input { padding-left: 38px; min-width: 240px; margin: 0; }
+    .product-search .btn-admin-secondary { padding: 10px 16px; white-space: nowrap; }
+</style>

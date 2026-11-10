@@ -7,5 +7,8 @@ namespace FinalProjectMVC.ViewModels
         public int? SelectedCategoryId { get; set; }
         public string? SearchTerm { get; set; }
         public string? SortBy { get; set; }
+
+        // All matching products; Products only holds the current page
+        public int TotalCount { get; set; }
     }
 }

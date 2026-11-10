@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
 
@@ -15,33 +16,42 @@ namespace FinalProjectMVC.Services
         public async Task<List<ProductVM>> GetAllProductsAsync()
         {
             var products = await _apiService.GetAsync<List<ProductVM>>("api/products");
-            return products ?? new List<ProductVM>();
+            return ImageUrlHelper.Normalize(products ?? new List<ProductVM>());
         }
 
         public async Task<ProductVM?> GetProductByIdAsync(int id)
         {
-            return await _apiService.GetAsync<ProductVM>($"api/products/{id}");
+            return ImageUrlHelper.Normalize(await _apiService.GetAsync<ProductVM>($"api/products/{id}"));
         }
 
         public async Task<List<ProductVM>> GetProductsByCategoryAsync(int categoryId)
         {
             var products = await _apiService.GetAsync<List<ProductVM>>($"api/products/Category/{categoryId}");
-            return products ?? new List<ProductVM>();
+            return ImageUrlHelper.Normalize(products ?? new List<ProductVM>());
         }
 
-        public async Task<ProductVM?> CreateProductAsync(CreateProductVM model)
+        public Task<ApiResult<ProductVM>> CreateProductAsync(CreateProductVM model)
         {
-            return await _apiService.PostAsync<ProductVM>("api/products", model);
+            // Only product fields; images are uploaded afterwards
+            return _apiService.PostWithResultAsync<ProductVM>("api/products", new
+            {
+                name = model.Name,
+                description = model.Description,
+                price = model.Price ?? 0,
+                stockQuantity = model.StockQuantity ?? 0,
+                isAvailable = model.IsAvailable,
+                categoryId = model.CategoryId ?? 0
+            });
         }
 
-        public async Task<ProductVM?> UpdateProductAsync(int id, UpdateProductVM model)
+        public Task<ApiResult<ProductVM>> UpdateProductAsync(int id, UpdateProductVM model)
         {
-            return await _apiService.PutAsync<ProductVM>($"api/products/{id}", model);
+            return _apiService.PutWithResultAsync<ProductVM>($"api/products/{id}", model);
         }
 
-        public async Task<bool> DeleteProductAsync(int id)
+        public Task<ApiResult<object>> DeleteProductAsync(int id)
         {
-            return await _apiService.DeleteAsync($"api/products/{id}");
+            return _apiService.DeleteWithResultAsync($"api/products/{id}");
         }
     }
 }

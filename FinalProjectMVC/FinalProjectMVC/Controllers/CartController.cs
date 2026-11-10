@@ -23,8 +23,21 @@ namespace FinalProjectMVC.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult UpdateQuantity(int productId, int quantity)
+        public async Task<IActionResult> UpdateQuantity(int productId, int quantity)
         {
+            if (quantity > 0)
+            {
+                var product = await _productService.GetProductByIdAsync(productId);
+                if (product != null && quantity > product.StockQuantity)
+                {
+                    // Don't let the cart ask for more than we have
+                    quantity = Math.Max(product.StockQuantity, 0);
+                    TempData["ErrorMessage"] = product.StockQuantity > 0
+                        ? $"Only {product.StockQuantity} of '{product.Name}' in stock."
+                        : $"'{product.Name}' is sold out.";
+                }
+            }
+
             _cartService.UpdateQuantity(productId, quantity);
             return RedirectToAction(nameof(Index));
         }
@@ -59,10 +72,24 @@ namespace FinalProjectMVC.Controllers
                 return RedirectToAction("Index", "Products");
             }
 
-            if (!product.IsAvailable || product.StockQuantity < quantity)
+            if (quantity < 1) quantity = 1;
+
+            // Count what is already in the cart, otherwise adding twice could exceed the stock
+            var inCart = _cartService.GetCartItems().FirstOrDefault(c => c.ProductId == productId)?.Quantity ?? 0;
+
+            if (!product.IsAvailable || product.StockQuantity <= 0)
             {
-                TempData["ErrorMessage"] = "Product is not available in the requested quantity.";
+                TempData["ErrorMessage"] = $"'{product.Name}' is not available right now.";
                 return RedirectToAction("Details", "Products", new { id = productId });
+            }
+
+            if (inCart + quantity > product.StockQuantity)
+            {
+                var canAdd = product.StockQuantity - inCart;
+                TempData["ErrorMessage"] = canAdd > 0
+                    ? $"Only {product.StockQuantity} of '{product.Name}' in stock and you already have {inCart} in your cart. You can add {canAdd} more."
+                    : $"You already have all {product.StockQuantity} of '{product.Name}' in your cart.";
+                return SafeRedirect(returnUrl) ?? RedirectToAction("Details", "Products", new { id = productId });
             }
 
             // Find primary image, fallback to first
@@ -85,12 +112,10 @@ namespace FinalProjectMVC.Controllers
 
             TempData["SuccessMessage"] = $"'{product.Name}' added to cart!";
 
-            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
-            {
-                return Redirect(returnUrl);
-            }
-
-            return RedirectToAction("Index", "Products");
+            return SafeRedirect(returnUrl) ?? RedirectToAction("Index", "Products");
         }
+
+        private IActionResult? SafeRedirect(string? returnUrl) =>
+            !string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : null;
     }
 }

@@ -6,8 +6,8 @@ namespace FinalProjectMVC.Services.Interfaces
     {
         Task<List<CategoryVM>> GetAllCategoriesAsync();
         Task<CategoryVM?> GetCategoryByIdAsync(int id);
-        Task<CategoryVM?> CreateCategoryAsync(CreateCategoryVM model);
-        Task<CategoryVM?> UpdateCategoryAsync(int id, UpdateCategoryVM model);
-        Task<bool> DeleteCategoryAsync(int id);
+        Task<ApiResult<CategoryVM>> CreateCategoryAsync(CreateCategoryVM model);
+        Task<ApiResult<CategoryVM>> UpdateCategoryAsync(int id, UpdateCategoryVM model);
+        Task<ApiResult<object>> DeleteCategoryAsync(int id);
     }
 }

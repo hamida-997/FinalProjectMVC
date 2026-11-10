@@ -28,6 +28,18 @@
 
                 <div class="summary-divider"></div>
 
+                @if (Model.HasDiscount)
+                {
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>$@Model.Subtotal.ToString("F2")</span>
+                    </div>
+                    <div class="summary-row" style="color: #10B981; font-weight: 600;">
+                        <span>Discount @(string.IsNullOrEmpty(Model.DiscountCode) ? "" : $"({Model.DiscountCode})")</span>
+                        <span>−$@Model.DiscountAmount.ToString("F2")</span>
+                    </div>
+                }
+
                 <div class="summary-row summary-total">
                     <span>Total paid</span>
                     <span>$@Model.TotalAmount.ToString("F2")</span>

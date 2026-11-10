@@ -5,11 +5,19 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// The shop sells in US dollars. Without a fixed culture the server's regional settings
+// (e.g. az-AZ) are used: prices show as "$20,56", and a number input posting "20.56"
+// can be read as 2056 because "." is the thousands separator there.
+var appCulture = new System.Globalization.CultureInfo("en-US");
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = appCulture;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = appCulture;
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 // Configure HttpClient for API Service
 var apiBaseUrl = builder.Configuration["ApiSettings:BaseUrl"] ?? "https://localhost:7001";
+FinalProjectMVC.Helpers.ImageUrlHelper.Configure(apiBaseUrl);
 builder.Services.AddHttpClient<IApiService, ApiService>(client =>
 {
     client.BaseAddress = new Uri(apiBaseUrl);
@@ -64,6 +72,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IReviewService, ReviewService>();
 builder.Services.AddScoped<IDiscountService, DiscountService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
 
 var app = builder.Build();
 
@@ -73,6 +82,13 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseRequestLocalization(new RequestLocalizationOptions
+{
+    DefaultRequestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(appCulture),
+    SupportedCultures = new[] { appCulture },
+    SupportedUICultures = new[] { appCulture }
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();

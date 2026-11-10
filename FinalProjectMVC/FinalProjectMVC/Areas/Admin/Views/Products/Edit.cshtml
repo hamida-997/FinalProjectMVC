@@ -1,9 +1,12 @@
 @model UpdateProductVM
 @{
     ViewData["Title"] = "Edit Product";
+    var images = ViewBag.Images as List<ProductImageVM> ?? new List<ProductImageVM>();
+    var mainImage = images.FirstOrDefault(i => i.IsPrimary) ?? images.FirstOrDefault();
+    var summaryErrors = ViewData.ModelState[string.Empty]?.Errors;
 }
 
-<section class="admin-page-section">
+<section class="admin-page-section product-edit-page">
     <div class="container-fluid">
         <!-- Page Header -->
         <div class="admin-page-header">
@@ -11,23 +14,49 @@
                 <h1 class="admin-page-title">
                     <i class="fas fa-edit"></i> Edit Product
                 </h1>
-                <p class="admin-page-subtitle">Update product information</p>
+                <p class="admin-page-subtitle">Update <strong>@Model.Name</strong></p>
             </div>
-            <div class="admin-breadcrumb">
-                <i class="fas fa-home"></i>
-                <span>Admin</span>
-                <i class="fas fa-chevron-right separator"></i>
-                <a asp-area="Admin" asp-controller="Products" asp-action="Index">Products</a>
-                <i class="fas fa-chevron-right separator"></i>
-                <span class="current">Edit</span>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="admin-breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Admin</span>
+                    <i class="fas fa-chevron-right separator"></i>
+                    <a asp-area="Admin" asp-controller="Products" asp-action="Index">Products</a>
+                    <i class="fas fa-chevron-right separator"></i>
+                    <span class="current">Edit</span>
+                </div>
+                <a asp-area="" asp-controller="Products" asp-action="Details" asp-route-id="@Model.Id" target="_blank" class="btn-admin-secondary">
+                    <i class="fas fa-external-link-alt"></i> View in Shop
+                </a>
             </div>
         </div>
 
-        <form asp-action="Edit" method="post">
+        @if (summaryErrors != null && summaryErrors.Count > 0)
+        {
+            <div class="pe-alert mt-3">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>
+                    @foreach (var error in summaryErrors)
+                    {
+                        <div>@error.ErrorMessage</div>
+                    }
+                </div>
+            </div>
+        }
+
+        @* The delete form lives outside the edit form (forms can't be nested);
+           its button below points at it with form="deleteProductForm" *@
+        <form asp-area="Admin" asp-controller="Products" asp-action="Delete" method="post" id="deleteProductForm"
+              onsubmit="return confirm('Delete this product? This cannot be undone.');">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="id" value="@Model.Id" />
+        </form>
+
+        <form asp-area="Admin" asp-controller="Products" asp-action="Edit" method="post" novalidate>
             @Html.AntiForgeryToken()
             <input asp-for="Id" type="hidden" />
 
-            <div class="row g-4 mt-2">
+            <div class="row g-4 mt-1">
                 <!-- Main Info -->
                 <div class="col-lg-8">
                     <div class="admin-panel">
@@ -35,43 +64,34 @@
                             <h3><i class="fas fa-info-circle"></i> Product Information</h3>
                         </div>
                         <div class="admin-panel-body">
-                            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
-                            {
-                                <div class="alert-danger mb-3">
-                                    <i class="fas fa-exclamation-circle me-2"></i>
-                                    <div asp-validation-summary="ModelOnly"></div>
-                                </div>
-                            }
-
                             <div class="form-group-admin">
                                 <label asp-for="Name" class="form-label-admin"></label>
-                                <input asp-for="Name" class="form-control-admin" />
+                                <input asp-for="Name" class="form-control-admin" maxlength="200" />
                                 <span asp-validation-for="Name" class="text-danger"></span>
                             </div>
 
                             <div class="form-group-admin">
-                                <label asp-for="Description" class="form-label-admin"></label>
-                                <textarea asp-for="Description" class="form-control-admin" rows="5"></textarea>
+                                <div class="d-flex justify-content-between align-items-baseline">
+                                    <label asp-for="Description" class="form-label-admin"></label>
+                                    <small class="text-muted"><span id="descCount">0</span> / 1000</small>
+                                </div>
+                                <textarea asp-for="Description" class="form-control-admin" rows="6" maxlength="1000"></textarea>
                                 <span asp-validation-for="Description" class="text-danger"></span>
                             </div>
 
-                            <div class="row">
+                            <div class="row g-3">
                                 <div class="col-md-6">
-                                    <div class="form-group-admin">
-                                        <label asp-for="Price" class="form-label-admin"></label>
-                                        <div class="input-with-prefix">
-                                            <span class="input-prefix">$</span>
-                                            <input asp-for="Price" type="number" step="0.01" min="0.01" class="form-control-admin" />
-                                        </div>
-                                        <span asp-validation-for="Price" class="text-danger"></span>
+                                    <label asp-for="Price" class="form-label-admin"></label>
+                                    <div class="input-with-prefix">
+                                        <span class="input-prefix">$</span>
+                                        <input asp-for="Price" type="number" step="0.01" min="0.01" class="form-control-admin" />
                                     </div>
+                                    <span asp-validation-for="Price" class="text-danger"></span>
                                 </div>
                                 <div class="col-md-6">
-                                    <div class="form-group-admin">
-                                        <label asp-for="StockQuantity" class="form-label-admin"></label>
-                                        <input asp-for="StockQuantity" type="number" min="0" class="form-control-admin" />
-                                        <span asp-validation-for="StockQuantity" class="text-danger"></span>
-                                    </div>
+                                    <label asp-for="StockQuantity" class="form-label-admin"></label>
+                                    <input asp-for="StockQuantity" type="number" step="1" min="0" class="form-control-admin" />
+                                    <span asp-validation-for="StockQuantity" class="text-danger"></span>
                                 </div>
                             </div>
                         </div>
@@ -80,21 +100,21 @@
 
                 <!-- Sidebar -->
                 <div class="col-lg-4">
-                    <div class="admin-panel">
-                        <div class="admin-panel-header">
-                            <h3><i class="fas fa-cog"></i> Settings</h3>
-                        </div>
-                        <div class="admin-panel-body">
-                            <div class="form-group-admin">
-                                <label asp-for="CategoryId" class="form-label-admin"></label>
-                                <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control-admin">
-                                    <option value="">-- Select Category --</option>
-                                </select>
-                                <span asp-validation-for="CategoryId" class="text-danger"></span>
+                    <div class="pe-sidebar">
+                        <div class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h3><i class="fas fa-cog"></i> Settings</h3>
                             </div>
+                            <div class="admin-panel-body">
+                                <div class="form-group-admin">
+                                    <label asp-for="CategoryId" class="form-label-admin"></label>
+                                    <select asp-for="CategoryId" asp-items="ViewBag.Categories" class="form-control-admin">
+                                        <option value="">-- Select Category --</option>
+                                    </select>
+                                    <span asp-validation-for="CategoryId" class="text-danger"></span>
+                                </div>
 
-                            <div class="form-group-admin">
-                                <div class="form-check-admin">
+                                <div class="form-check-admin mb-0">
                                     <input asp-for="IsAvailable" class="form-check-input-admin" />
                                     <label asp-for="IsAvailable" class="form-check-label-admin">
                                         Available for Sale
@@ -103,22 +123,56 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div class="admin-panel mt-4">
-                        <div class="admin-panel-header">
-                            <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                        <div class="admin-panel">
+                            <div class="admin-panel-header">
+                                <h3>
+                                    <i class="fas fa-images"></i> Photos
+                                    <span class="badge-count ms-2">@images.Count</span>
+                                </h3>
+                            </div>
+                            <div class="admin-panel-body">
+                                @if (mainImage != null)
+                                {
+                                    <div class="pe-photos">
+                                        @foreach (var image in images.Take(CreateProductVM.MaxImages))
+                                        {
+                                            <div class="pe-photo @(image == mainImage ? "is-main" : "")">
+                                                <img src="@image.ImageUrl" alt="@Model.Name" />
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-muted mb-0"><i class="fas fa-exclamation-triangle text-warning"></i> This product has no photos.</p>
+                                }
+                                <a asp-area="Admin" asp-controller="Products" asp-action="Images" asp-route-id="@Model.Id"
+                                   class="btn-admin-secondary w-100 justify-content-center mt-3">
+                                    <i class="fas fa-images"></i> Manage Photos
+                                </a>
+                            </div>
                         </div>
-                        <div class="admin-panel-body">
-                            <p class="text-muted mb-3">
-                                Deleting a product is permanent. Make sure it has no associated orders.
-                            </p>
+
+                        <div class="admin-panel pe-danger">
+                            <div class="admin-panel-header">
+                                <h3><i class="fas fa-exclamation-triangle"></i> Danger Zone</h3>
+                            </div>
+                            <div class="admin-panel-body">
+                                <p class="text-muted mb-3">
+                                    Deleting is permanent. Products that appear in past orders can't be deleted; untick
+                                    "Available for Sale" to hide them instead.
+                                </p>
+                                <button type="submit" form="deleteProductForm" class="btn-admin-danger w-100">
+                                    <i class="fas fa-trash-alt"></i> Delete Product
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="form-actions-full">
+            <div class="form-actions-full mt-4">
                 <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn-admin-secondary">
                     <i class="fas fa-times"></i> Cancel
                 </a>
@@ -127,21 +181,40 @@
                 </button>
             </div>
         </form>
-
-        <!-- Delete form (outside main form to avoid nested forms) -->
-        <div class="form-actions-full mt-3" style="justify-content: flex-start; background: #FFF5F5; border: 1px solid #FFE0E0;">
-            <form asp-area="Admin" asp-controller="Products" asp-action="Delete" method="post"
-                  onsubmit="return confirm('Are you sure you want to delete this product? This action cannot be undone.');">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="id" value="@Model.Id" />
-                <button type="submit" class="btn-admin-danger">
-                    <i class="fas fa-trash-alt"></i> Delete Product
-                </button>
-            </form>
-        </div>
     </div>
 </section>
 
+<style>
+    /* The global .admin-panel has height:100%, which stretches stacked panels on this page */
+    .product-edit-page .admin-panel { height: auto; }
+
+    .pe-sidebar { display: flex; flex-direction: column; gap: 24px; }
+
+    .pe-alert {
+        display: flex; gap: 12px; align-items: flex-start;
+        background: #FFE4E6; border: 1px solid #FFBDC2; color: #9F1239;
+        border-radius: 12px; padding: 14px 18px;
+    }
+    .pe-alert i { margin-top: 3px; }
+
+    .pe-photos { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .pe-photo { aspect-ratio: 1 / 1; border-radius: 8px; overflow: hidden; border: 2px solid #F0E6D9; background: #f7f3ee; }
+    .pe-photo.is-main { border-color: #8B4513; }
+    .pe-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    .pe-danger .admin-panel-header { background: #FFF5F5; border-bottom-color: #FFE0E0; }
+    .pe-danger .admin-panel-header h3, .pe-danger .admin-panel-header h3 i { color: #B91C1C; }
+
+    .input-with-prefix .input-prefix { top: 50%; }
+</style>
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        const desc = document.getElementById('Description');
+        const count = document.getElementById('descCount');
+        const updateCount = () => count.textContent = desc.value.length;
+        desc.addEventListener('input', updateCount);
+        updateCount();
+    </script>
 }

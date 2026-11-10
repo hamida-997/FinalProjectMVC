@@ -1,6 +1,7 @@
 @model ProductsListVM
 @{
     ViewData["Title"] = "Our Products";
+    var isFiltered = Model.SelectedCategoryId.HasValue || !string.IsNullOrEmpty(Model.SearchTerm);
 }
 
 <!-- Page Header -->
@@ -30,13 +31,20 @@
                         <h4 class="filter-title">
                             <i class="fas fa-search"></i> Search
                         </h4>
-                        <form method="get" asp-action="Index" class="search-form">
-                            <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
-                            <input type="hidden" name="sortBy" value="@Model.SortBy" />
+                        <form method="get" asp-action="Index" class="search-form" role="search">
+                            @* Only send filters that are set, so URLs stay clean (no "?categoryId=&sortBy=") *@
+                            @if (Model.SelectedCategoryId.HasValue)
+                            {
+                                <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
+                            }
+                            @if (!string.IsNullOrEmpty(Model.SortBy))
+                            {
+                                <input type="hidden" name="sortBy" value="@Model.SortBy" />
+                            }
                             <div class="search-input-wrapper">
-                                <input type="text" name="search" value="@Model.SearchTerm"
-                                       placeholder="Search products..." class="filter-input" />
-                                <button type="submit" class="search-btn">
+                                <input type="search" name="search" value="@Model.SearchTerm" maxlength="100"
+                                       placeholder="Search products..." class="filter-input" aria-label="Search products" />
+                                <button type="submit" class="search-btn" aria-label="Search">
                                     <i class="fas fa-search"></i>
                                 </button>
                             </div>
@@ -74,14 +82,14 @@
                         </ul>
                     </div>
 
-                    <!-- Promo Banner -->
+                    @* The old banner advertised a hard-coded code (WELCOME15) that only works if an admin
+                       has created it, and "first order only" isn't something discount codes support *@
                     <div class="filter-promo">
                         <div class="promo-icon">
-                            <i class="fas fa-gift"></i>
+                            <i class="fas fa-ticket-alt"></i>
                         </div>
-                        <h5>Special Offer</h5>
-                        <p>Get 15% off on your first order</p>
-                        <span class="promo-code">WELCOME15</span>
+                        <h5>Have a discount code?</h5>
+                        <p>Enter it at checkout and the discount is applied before you pay.</p>
                     </div>
                 </div>
             </aside>
@@ -91,7 +99,7 @@
                 <!-- Toolbar -->
                 <div class="products-toolbar">
                     <div class="results-count">
-                        <strong>@Model.Products.Count</strong> product@(Model.Products.Count != 1 ? "s" : "") found
+                        <strong>@Model.TotalCount</strong> product@(Model.TotalCount != 1 ? "s" : "") found
                         @if (Model.SelectedCategoryId.HasValue)
                         {
                             var selectedCategory = Model.Categories.FirstOrDefault(c => c.Id == Model.SelectedCategoryId);
@@ -104,19 +112,32 @@
                         {
                             <span class="active-filter">for "<strong>@Model.SearchTerm</strong>"</span>
                         }
+                        @if (isFiltered)
+                        {
+                            <a asp-action="Index" asp-route-sortBy="@Model.SortBy" class="clear-filters-link">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                        }
                     </div>
 
                     <div class="sort-dropdown">
                         <form method="get" asp-action="Index" id="sortForm">
-                            <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
-                            <input type="hidden" name="search" value="@Model.SearchTerm" />
+                            @if (Model.SelectedCategoryId.HasValue)
+                            {
+                                <input type="hidden" name="categoryId" value="@Model.SelectedCategoryId" />
+                            }
+                            @if (!string.IsNullOrEmpty(Model.SearchTerm))
+                            {
+                                <input type="hidden" name="search" value="@Model.SearchTerm" />
+                            }
                             <label for="sortBy"><i class="fas fa-sort"></i> Sort by:</label>
-                            <select name="sortBy" id="sortBy" onchange="document.getElementById('sortForm').submit()">
+                            <select name="sortBy" id="sortBy" onchange="this.form.submit()">
                                 <option value="" selected="@(string.IsNullOrEmpty(Model.SortBy))">Name (A-Z)</option>
                                 <option value="name-desc" selected="@(Model.SortBy == "name-desc")">Name (Z-A)</option>
                                 <option value="price-asc" selected="@(Model.SortBy == "price-asc")">Price: Low to High</option>
                                 <option value="price-desc" selected="@(Model.SortBy == "price-desc")">Price: High to Low</option>
                                 <option value="newest" selected="@(Model.SortBy == "newest")">Newest First</option>
+                                <option value="rating" selected="@(Model.SortBy == "rating")">Top Rated</option>
                             </select>
                         </form>
                     </div>
@@ -129,80 +150,11 @@
                         @foreach (var product in Model.Products)
                         {
                             <div class="col-xl-4 col-md-6">
-                                <div class="product-card-modern">
-                                    <div class="product-card-image">
-                                        @{
-                                            var primaryImage = product.Images.FirstOrDefault(i => i.IsPrimary);
-                                            if (primaryImage == null)
-                                            {
-                                                primaryImage = product.Images.FirstOrDefault();
-                                            }
-                                        }
-                                        @if (primaryImage != null)
-                                        {
-                                            <img src="@primaryImage.ImageUrl" alt="@product.Name" />
-                                        }
-                                        else
-                                        {
-                                            <div class="product-placeholder">
-                                                <i class="fas fa-cookie-bite"></i>
-                                            </div>
-                                        }
-
-                                        <div class="product-badges">
-                                            @if ((DateTime.UtcNow - product.CreatedAt).TotalDays <= 7)
-                                            {
-                                                <span class="product-badge badge-new">New</span>
-                                            }
-                                            @if (product.StockQuantity < 10 && product.StockQuantity > 0)
-                                            {
-                                                <span class="product-badge badge-low-stock">Low Stock</span>
-                                            }
-                                        </div>
-
-                                        <div class="product-card-overlay">
-                                            <a asp-action="Details" asp-route-id="@product.Id" class="overlay-btn" title="View Details">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <button type="button" class="overlay-btn" title="Add to Favorites">
-                                                <i class="fas fa-heart"></i>
-                                            </button>
-                                            <button type="button" class="overlay-btn" title="Quick View">
-                                                <i class="fas fa-shopping-bag"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="product-card-body">
-                                        <span class="product-category-tag">@product.CategoryName</span>
-                                        <h3 class="product-card-name">
-                                            <a asp-action="Details" asp-route-id="@product.Id">@product.Name</a>
-                                        </h3>
-                                        <partial name="_CardRating" model="product" />
-                                        @if (!string.IsNullOrEmpty(product.Description))
-                                        {
-                                            <p class="product-card-desc">
-                                                @(product.Description.Length > 70 ? product.Description.Substring(0, 70) + "..." : product.Description)
-                                            </p>
-                                        }
-                                        <div class="product-card-footer">
-                                            <span class="product-card-price">$@product.Price.ToString("F2")</span>
-                                            <form asp-controller="Cart" asp-action="AddToCart" method="post" style="margin: 0;">
-                                                @Html.AntiForgeryToken()
-                                                <input type="hidden" name="productId" value="@product.Id" />
-                                                <input type="hidden" name="quantity" value="1" />
-                                                <input type="hidden" name="returnUrl" value="@Context.Request.Path@Context.Request.QueryString" />
-                                                <button type="submit" class="btn-add-cart">
-                                                    <i class="fas fa-plus"></i>
-                                                    <span>Add</span>
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
+                                <partial name="_ProductCard" model="product" />
                             </div>
                         }
                     </div>
+                    <div class="shop-pager"><partial name="_Pagination" /></div>
                 }
                 else
                 {
@@ -211,13 +163,26 @@
                             <i class="fas fa-search"></i>
                         </div>
                         <h3>No products found</h3>
-                        <p>Try adjusting your filters or search terms to find what you're looking for.</p>
-                        <a asp-action="Index" class="btn-primary-custom">
-                            <i class="fas fa-refresh"></i> Clear Filters
-                        </a>
+                        @if (isFiltered)
+                        {
+                            <p>Try adjusting your filters or search terms to find what you're looking for.</p>
+                            <a asp-action="Index" class="btn-primary-custom">
+                                <i class="fas fa-rotate-left"></i> Clear Filters
+                            </a>
+                        }
+                        else
+                        {
+                            <p>We're baking something new. Please check back soon!</p>
+                        }
                     </div>
                 }
             </div>
         </div>
     </div>
 </section>
+
+<style>
+    .clear-filters-link { margin-left: 8px; font-size: 0.85rem; color: var(--secondary-color); text-decoration: none; white-space: nowrap; }
+    .clear-filters-link:hover { text-decoration: underline; }
+    .shop-pager .pager { padding: 30px 0 0; }
+</style>

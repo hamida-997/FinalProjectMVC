@@ -120,6 +120,9 @@ namespace FinalProjectMVC.Services
         public Task<ApiResult<T>> PutWithResultAsync<T>(string endpoint, object data) =>
             SendWithResultAsync<T>(HttpMethod.Put, endpoint, data);
 
+        public Task<ApiResult<object>> DeleteWithResultAsync(string endpoint) =>
+            SendWithResultAsync<object>(HttpMethod.Delete, endpoint, null);
+
         private async Task<ApiResult<T>> SendWithResultAsync<T>(HttpMethod method, string endpoint, object? data)
         {
             HttpResponseMessage response;

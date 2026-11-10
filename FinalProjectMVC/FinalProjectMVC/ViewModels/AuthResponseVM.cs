@@ -7,6 +7,9 @@ namespace FinalProjectMVC.ViewModels
         public string? Token { get; set; }
         public DateTime? ExpiresAt { get; set; }
         public UserInfoVM? User { get; set; }
+
+        public bool RequiresEmailConfirmation { get; set; }
+        public bool EmailNotConfirmed { get; set; }
     }
 
     public class UserInfoVM

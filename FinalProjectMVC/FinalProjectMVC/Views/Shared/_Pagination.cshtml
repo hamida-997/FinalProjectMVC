@@ -1,0 +1,70 @@
+@using FinalProjectMVC.Helpers
+@{
+    // Uses the PagerVM set by Paging.Paginate(). Keeps the current filters (search, status...)
+    // in the links and only changes "page".
+    var pager = ViewData.GetPager();
+}
+
+@if (pager != null && pager.TotalPages > 1)
+{
+    var query = Context.Request.Query
+        .Where(q => !string.Equals(q.Key, "page", StringComparison.OrdinalIgnoreCase))
+        .SelectMany(q => q.Value.Select(v => $"{Uri.EscapeDataString(q.Key)}={Uri.EscapeDataString(v ?? "")}"))
+        .ToList();
+    var basePath = Context.Request.PathBase + Context.Request.Path;
+
+    string PageUrl(int p)
+    {
+        var parts = new List<string>(query);
+        if (p > 1) parts.Add($"page={p}");
+        return basePath + (parts.Count > 0 ? "?" + string.Join("&", parts) : "") + pager.Fragment;
+    }
+
+    // Show first, last, and two pages either side of the current one
+    var pages = Enumerable.Range(1, pager.TotalPages)
+        .Where(p => p == 1 || p == pager.TotalPages || Math.Abs(p - pager.Page) <= 2)
+        .ToList();
+
+    <nav class="pager" aria-label="Pages">
+        <span class="pager-info">Showing @pager.FirstItem–@pager.LastItem of @pager.TotalItems</span>
+        <ul class="pager-list">
+            <li>
+                @if (pager.Page > 1)
+                {
+                    <a class="pager-link" href="@PageUrl(pager.Page - 1)" aria-label="Previous page"><i class="fas fa-chevron-left"></i></a>
+                }
+                else
+                {
+                    <span class="pager-link disabled" aria-hidden="true"><i class="fas fa-chevron-left"></i></span>
+                }
+            </li>
+            @for (var i = 0; i < pages.Count; i++)
+            {
+                if (i > 0 && pages[i] - pages[i - 1] > 1)
+                {
+                    <li><span class="pager-gap">…</span></li>
+                }
+                <li>
+                    @if (pages[i] == pager.Page)
+                    {
+                        <span class="pager-link active" aria-current="page">@pages[i]</span>
+                    }
+                    else
+                    {
+                        <a class="pager-link" href="@PageUrl(pages[i])">@pages[i]</a>
+                    }
+                </li>
+            }
+            <li>
+                @if (pager.Page < pager.TotalPages)
+                {
+                    <a class="pager-link" href="@PageUrl(pager.Page + 1)" aria-label="Next page"><i class="fas fa-chevron-right"></i></a>
+                }
+                else
+                {
+                    <span class="pager-link disabled" aria-hidden="true"><i class="fas fa-chevron-right"></i></span>
+                }
+            </li>
+        </ul>
+    </nav>
+}

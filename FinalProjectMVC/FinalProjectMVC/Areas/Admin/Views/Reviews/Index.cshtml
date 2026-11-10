@@ -64,7 +64,7 @@
             <div class="admin-table-header">
                 <h3>
                     @(hasFilter ? "Filtered Reviews" : "All Reviews")
-                    <span class="badge-count">@Model.Count</span>
+                    <span class="badge-count">@(ViewData.GetPager()?.TotalItems ?? Model.Count)</span>
                 </h3>
             </div>
 
@@ -115,6 +115,7 @@
                                             <input type="hidden" name="id" value="@review.Id" />
                                             <input type="hidden" name="productId" value="@selectedProduct" />
                                             <input type="hidden" name="rating" value="@selectedRating" />
+                                            <input type="hidden" name="page" value="@(ViewData.GetPager()?.Page ?? 1)" />
                                             <button type="submit" class="action-btn action-delete" title="Delete">
                                                 <i class="fas fa-trash-alt"></i>
                                             </button>
@@ -125,6 +126,7 @@
                         </tbody>
                     </table>
                 </div>
+                <partial name="_Pagination" />
             }
             else
             {

@@ -23,15 +23,14 @@ namespace FinalProjectMVC.Services
             return await _apiService.GetAsync<OrderVM>($"api/orders/{id}");
         }
 
-        public async Task<OrderVM?> UpdateOrderStatusAsync(int id, UpdateOrderStatusVM model)
+        public Task<ApiResult<OrderVM>> UpdateOrderStatusAsync(int id, UpdateOrderStatusVM model)
         {
-            return await _apiService.PutAsync<OrderVM>($"api/orders/{id}/Status", model);
+            return _apiService.PutWithResultAsync<OrderVM>($"api/orders/{id}/Status", model);
         }
 
-        public async Task<bool> CancelOrderAsync(int id)
+        public Task<ApiResult<object>> CancelOrderAsync(int id)
         {
-            var result = await _apiService.PutAsync<object>($"api/orders/{id}/Cancel", new { });
-            return result != null;
+            return _apiService.PutWithResultAsync<object>($"api/orders/{id}/Cancel", new { });
         }
     }
 }

@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -17,14 +18,14 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
         }
 
         // GET: Admin/Users
-        public async Task<IActionResult> Index(string? search, string? role)
+        public async Task<IActionResult> Index(string? search, string? role, int page = 1)
         {
             ViewBag.Search = search;
             ViewBag.Role = role;
             ViewBag.Roles = await _userService.GetRolesAsync();
 
             var users = await _userService.GetAllUsersAsync(search, role);
-            return View(users);
+            return View(users.Paginate(page, ViewData));
         }
 
         // GET: Admin/Users/Details/5
@@ -38,7 +39,7 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
-                TempData["ErrorMessage"] = "User not found";
+                TempData["ErrorMessage"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -49,7 +50,8 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
         public async Task<IActionResult> Create()
         {
             ViewBag.Roles = await _userService.GetRolesAsync();
-            return View();
+            // Customer is the usual choice, so start with it ticked
+            return View(new CreateUserVM { Roles = new List<string> { "Customer" } });
         }
 
         // POST: Admin/Users/Create
@@ -57,17 +59,20 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CreateUserVM model)
         {
+            RequireRole(model.Roles);
+
             if (ModelState.IsValid)
             {
-                var user = await _userService.CreateUserAsync(model);
+                var result = await _userService.CreateUserAsync(model);
 
-                if (user != null)
+                if (result.Success)
                 {
-                    TempData["SuccessMessage"] = $"User '{user.UserName}' created successfully!";
+                    TempData["SuccessMessage"] = $"User '{result.Data?.UserName ?? model.UserName}' created.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                TempData["ErrorMessage"] = "Failed to create user. Username or email may already exist.";
+                // e.g. "Email already exists" or the password rules
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to create user.");
             }
 
             ViewBag.Roles = await _userService.GetRolesAsync();
@@ -85,7 +90,7 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
-                TempData["ErrorMessage"] = "User not found";
+                TempData["ErrorMessage"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -100,10 +105,7 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
                 Roles = user.Roles
             };
 
-            ViewBag.UserName = user.UserName;
-            ViewBag.Email = user.Email;
-            ViewBag.Roles = await _userService.GetRolesAsync();
-
+            await LoadEditViewBagAsync(user);
             return View(model);
         }
 
@@ -117,20 +119,24 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
                 return NotFound();
             }
 
+            RequireRole(model.Roles);
+
             if (ModelState.IsValid)
             {
                 var result = await _userService.UpdateUserAsync(id, model);
 
-                if (result)
+                if (result.Success)
                 {
-                    TempData["SuccessMessage"] = "User updated successfully!";
+                    TempData["SuccessMessage"] = "User updated.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                TempData["ErrorMessage"] = "Failed to update user";
+                // e.g. "You cannot remove your own admin role."
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to update user.");
             }
 
-            ViewBag.Roles = await _userService.GetRolesAsync();
+            // The page needs the username/email banner again, not just the roles
+            await LoadEditViewBagAsync(await _userService.GetUserByIdAsync(id));
             return View(model);
         }
 
@@ -145,17 +151,12 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             var user = await _userService.GetUserByIdAsync(id);
             if (user == null)
             {
-                TempData["ErrorMessage"] = "User not found";
+                TempData["ErrorMessage"] = "User not found.";
                 return RedirectToAction(nameof(Index));
             }
 
-            var model = new ChangePasswordVM
-            {
-                UserId = id
-            };
-
             ViewBag.UserName = user.UserName;
-            return View(model);
+            return View(new ChangePasswordVM { UserId = id });
         }
 
         // POST: Admin/Users/ChangePassword/5
@@ -172,13 +173,13 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             {
                 var result = await _userService.ChangePasswordAsync(id, model);
 
-                if (result)
+                if (result.Success)
                 {
-                    TempData["SuccessMessage"] = "Password changed successfully!";
+                    TempData["SuccessMessage"] = "Password changed.";
                     return RedirectToAction(nameof(Index));
                 }
 
-                TempData["ErrorMessage"] = "Failed to change password";
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to change password.");
             }
 
             var user = await _userService.GetUserByIdAsync(id);
@@ -198,14 +199,10 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _userService.ToggleUserStatusAsync(id);
 
-            if (result)
-            {
-                TempData["SuccessMessage"] = "User status updated successfully!";
-            }
+            if (result.Success)
+                TempData["SuccessMessage"] = "User status updated.";
             else
-            {
-                TempData["ErrorMessage"] = "Failed to update user status. You may not be able to disable yourself.";
-            }
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Failed to update user status.";
 
             return RedirectToAction(nameof(Index));
         }
@@ -222,16 +219,28 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _userService.DeleteUserAsync(id);
 
-            if (result)
-            {
-                TempData["SuccessMessage"] = "User deleted successfully!";
-            }
+            if (result.Success)
+                TempData["SuccessMessage"] = "User deleted.";
             else
-            {
-                TempData["ErrorMessage"] = "Failed to delete user. You may not be able to delete yourself.";
-            }
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Failed to delete user.";
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // [Required] on a List passes for an empty list, so check it here
+        private void RequireRole(List<string>? roles)
+        {
+            if (roles == null || roles.Count == 0)
+            {
+                ModelState.AddModelError("Roles", "Please choose at least one role.");
+            }
+        }
+
+        private async Task LoadEditViewBagAsync(UserVM? user)
+        {
+            ViewBag.UserName = user?.UserName;
+            ViewBag.Email = user?.Email;
+            ViewBag.Roles = await _userService.GetRolesAsync();
         }
     }
 }

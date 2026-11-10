@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -17,10 +18,10 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
         }
 
         // GET: Admin/Discounts
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
             var codes = await _discountService.GetAllAsync();
-            return View(codes);
+            return View(codes.Paginate(page, ViewData));
         }
 
         // GET: Admin/Discounts/Create

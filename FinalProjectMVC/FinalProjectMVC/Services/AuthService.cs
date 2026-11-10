@@ -28,11 +28,19 @@ namespace FinalProjectMVC.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
+        // Registration no longer logs the user in; they must confirm their email first
         public async Task<AuthResponseVM?> RegisterAsync(RegisterVM model)
         {
-            var response = await _apiService.PostAsync<AuthResponseVM>("api/auth/Register", model);
+            var result = await _apiService.PostWithResultAsync<AuthResponseVM>("api/auth/Register", model);
+            return ToResponse(result);
+        }
 
-            if (response != null && response.IsSuccess)
+        public async Task<AuthResponseVM?> LoginAsync(LoginVM model)
+        {
+            var result = await _apiService.PostWithResultAsync<AuthResponseVM>("api/auth/Login", model);
+            var response = ToResponse(result);
+
+            if (response != null && response.IsSuccess && !string.IsNullOrEmpty(response.Token))
             {
                 await SaveUserSessionAsync(response);
             }
@@ -40,16 +48,58 @@ namespace FinalProjectMVC.Services
             return response;
         }
 
-        public async Task<AuthResponseVM?> LoginAsync(LoginVM model)
+        public Task<ApiResult<AuthResponseVM>> ConfirmEmailAsync(string userId, string token)
         {
-            var response = await _apiService.PostAsync<AuthResponseVM>("api/auth/Login", model);
+            var url = $"api/auth/confirm-email?userId={Uri.EscapeDataString(userId)}&token={Uri.EscapeDataString(token)}";
+            return _apiService.GetWithResultAsync<AuthResponseVM>(url);
+        }
 
-            if (response != null && response.IsSuccess)
+        public Task<ApiResult<object>> ResendConfirmationAsync(string email)
+        {
+            return _apiService.PostWithResultAsync<object>("api/auth/resend-confirmation", new { email });
+        }
+
+        public async Task RefreshCurrentUserAsync(ProfileVM profile)
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            var current = httpContext?.User;
+            if (httpContext == null || current?.Identity?.IsAuthenticated != true)
+                return;
+
+            httpContext.Session.SetString(UserFirstNameKey, profile.FirstName);
+            httpContext.Session.SetString(UserLastNameKey, profile.LastName);
+            httpContext.Session.SetString(UserPhoneKey, profile.PhoneNumber ?? string.Empty);
+            httpContext.Session.SetString(UserAddressKey, profile.Address ?? string.Empty);
+
+            // Rebuild the cookie with the new names; keep id, email and roles as they are
+            var claims = current.Claims
+                .Where(c => c.Type != ClaimTypes.GivenName && c.Type != ClaimTypes.Surname)
+                .ToList();
+            claims.Add(new Claim(ClaimTypes.GivenName, profile.FirstName));
+            claims.Add(new Claim(ClaimTypes.Surname, profile.LastName));
+
+            var auth = await httpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            await httpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme)),
+                auth.Properties ?? new AuthenticationProperties { IsPersistent = true });
+        }
+
+        // null = API unreachable; otherwise a response carrying the API's message
+        private static AuthResponseVM? ToResponse(ApiResult<AuthResponseVM> result)
+        {
+            if (result.Success)
+                return result.Data;
+
+            if (result.StatusCode == 0)
+                return null;
+
+            return new AuthResponseVM
             {
-                await SaveUserSessionAsync(response);
-            }
-
-            return response;
+                IsSuccess = false,
+                Message = result.ErrorMessage ?? "The request could not be completed.",
+                EmailNotConfirmed = result.StatusCode == StatusCodes.Status403Forbidden
+            };
         }
 
         public async Task LogoutAsync()

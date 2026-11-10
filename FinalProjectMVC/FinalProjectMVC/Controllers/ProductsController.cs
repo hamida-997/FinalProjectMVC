@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Mvc;
@@ -17,35 +18,49 @@ namespace FinalProjectMVC.Controllers
             _reviewService = reviewService;
         }
 
-        public async Task<IActionResult> Index(int? categoryId, string? search, string? sortBy)
+        // Shop grid: 9 products per page
+        private const int ShopPageSize = 9;
+
+        public async Task<IActionResult> Index(int? categoryId, string? search, string? sortBy, int page = 1)
         {
+            search = search?.Trim();
+
+            // Fetch categories; only active ones are shown to customers
+            var categories = await _categoryService.GetAllCategoriesAsync();
+            var activeCategories = categories.Where(c => c.IsActive).ToList();
+            var activeIds = activeCategories.Select(c => c.Id).ToHashSet();
+
+            // An inactive or unknown category in the URL is ignored instead of listing its products
+            if (categoryId.HasValue && !activeIds.Contains(categoryId.Value))
+            {
+                categoryId = null;
+            }
+
             var model = new ProductsListVM
             {
                 SelectedCategoryId = categoryId,
                 SearchTerm = search,
-                SortBy = sortBy
+                SortBy = sortBy,
+                Categories = activeCategories
             };
 
-            // Fetch categories
-            var categories = await _categoryService.GetAllCategoriesAsync();
-            model.Categories = categories.Where(c => c.IsActive).ToList();
-
             // Fetch products based on category filter
-            var products = categoryId.HasValue && categoryId.Value > 0
+            var products = categoryId.HasValue
                 ? await _productService.GetProductsByCategoryAsync(categoryId.Value)
                 : await _productService.GetAllProductsAsync();
 
-            // Filter by search term
+            // Only available products in active categories
+            products = products.Where(p => p.IsAvailable && activeIds.Contains(p.CategoryId)).ToList();
+
+            // Filter by search term (name, description or category)
             if (!string.IsNullOrWhiteSpace(search))
             {
                 products = products.Where(p =>
                     p.Name.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                    p.CategoryName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
                     (p.Description != null && p.Description.Contains(search, StringComparison.OrdinalIgnoreCase))
                 ).ToList();
             }
-
-            // Only show available products
-            products = products.Where(p => p.IsAvailable).ToList();
 
             // Sort
             products = sortBy switch
@@ -54,15 +69,17 @@ namespace FinalProjectMVC.Controllers
                 "price-desc" => products.OrderByDescending(p => p.Price).ToList(),
                 "name-desc" => products.OrderByDescending(p => p.Name).ToList(),
                 "newest" => products.OrderByDescending(p => p.CreatedAt).ToList(),
+                "rating" => products.OrderByDescending(p => p.AverageRating).ThenByDescending(p => p.ReviewCount).ToList(),
                 _ => products.OrderBy(p => p.Name).ToList()
             };
 
-            model.Products = products;
+            model.TotalCount = products.Count;
+            model.Products = products.Paginate(page, ViewData, ShopPageSize);
 
             return View(model);
         }
 
-        public async Task<IActionResult> Details(int id)
+        public async Task<IActionResult> Details(int id, int page = 1)
         {
             var product = await _productService.GetProductByIdAsync(id);
 
@@ -93,6 +110,12 @@ namespace FinalProjectMVC.Controllers
                     model.MyReview = model.Reviews.FirstOrDefault(r => r.Id == myReviewId);
                 }
             }
+
+            // MyReview is looked up in the full list above, then the list is cut to one page.
+            // Page links jump back to the reviews section.
+            model.Reviews = model.Reviews
+                .OrderByDescending(r => r.CreatedAt)
+                .Paginate(page, ViewData, fragment: "#reviews");
 
             return View(model);
         }

@@ -31,7 +31,7 @@
             <div class="admin-table-header">
                 <h3>
                     All Categories
-                    <span class="badge-count">@Model.Count</span>
+                    <span class="badge-count">@(ViewData.GetPager()?.TotalItems ?? Model.Count)</span>
                 </h3>
             </div>
 
@@ -103,6 +103,7 @@
                         </tbody>
                     </table>
                 </div>
+                <partial name="_Pagination" />
             }
             else
             {

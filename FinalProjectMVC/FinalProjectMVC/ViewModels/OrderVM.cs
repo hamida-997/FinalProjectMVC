@@ -7,6 +7,12 @@ namespace FinalProjectMVC.ViewModels
         public string CustomerEmail { get; set; } = string.Empty;
         public string CustomerPhone { get; set; } = string.Empty;
         public string ShippingAddress { get; set; } = string.Empty;
+        // Subtotal before discount; older orders have Subtotal == TotalAmount
+        public decimal Subtotal { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public string? DiscountCode { get; set; }
+        public bool HasDiscount => DiscountAmount > 0;
+
         public decimal TotalAmount { get; set; }
         public OrderStatus Status { get; set; }
         public string StatusName { get; set; } = string.Empty;

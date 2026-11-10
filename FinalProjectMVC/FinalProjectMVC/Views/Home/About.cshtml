@@ -1,5 +1,7 @@
+@model AboutVM
 @{
     ViewData["Title"] = "About Us";
+    var mapsUrl = "https://www.google.com/maps/search/?api=1&query=" + Uri.EscapeDataString("123 Bakery Street, Sweet City");
 }
 
 <!-- Page Hero -->
@@ -68,6 +70,80 @@
         </div>
     </div>
 </section>
+
+<!-- Live numbers from the shop -->
+<section class="stats-section">
+    <div class="container">
+        <div class="row">
+            <div class="col-lg-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">@Model.ProductCount</span>
+                    <span class="stat-label">Products to Order</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">@Model.CategoryCount</span>
+                    <span class="stat-label">Categor@(Model.CategoryCount == 1 ? "y" : "ies")</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="stat-item">
+                    <span class="stat-number">@Model.ReviewCount</span>
+                    <span class="stat-label">Customer Review@(Model.ReviewCount == 1 ? "" : "s")</span>
+                </div>
+            </div>
+            <div class="col-lg-3 col-6">
+                <div class="stat-item">
+                    @* Shown as text so the counter animation in site.js leaves the decimal alone *@
+                    <span class="stat-rating">@(Model.ReviewCount > 0 ? Model.AverageRating.ToString("0.0") : "–") <i class="fas fa-star"></i></span>
+                    <span class="stat-label">Average Rating</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@if (Model.TopProducts.Any())
+{
+    <!-- Customer favourites -->
+    <section class="section">
+        <div class="container">
+            <div class="section-title">
+                <span class="section-subtitle">Customer Favourites</span>
+                <h2>What People Love Most</h2>
+                <p>Our best-rated treats, chosen by the people who bought them</p>
+            </div>
+            <div class="row g-4 mt-2">
+                @foreach (var product in Model.TopProducts)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <partial name="_ProductCard" model="product" />
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+}
+
+@if (Model.Categories.Any())
+{
+    <!-- Categories -->
+    <section class="section section-cream">
+        <div class="container text-center">
+            <span class="section-subtitle">What We Bake</span>
+            <h2 class="mb-4">Explore Our Categories</h2>
+            <div class="about-categories">
+                @foreach (var category in Model.Categories)
+                {
+                    <a asp-controller="Products" asp-action="Index" asp-route-categoryId="@category.Id" class="about-category-chip">
+                        <i class="fas fa-cookie-bite"></i> @category.Name
+                    </a>
+                }
+            </div>
+        </div>
+    </section>
+}
 
 <!-- Mission & Vision -->
 <section class="section section-cream">
@@ -159,79 +235,40 @@
     </div>
 </section>
 
-<!-- Team Section -->
-<section class="section section-cream">
-    <div class="container">
-        <div class="section-title">
-            <span class="section-subtitle">Meet The Team</span>
-            <h2>The People Behind The Magic</h2>
-            <p>Our talented bakers who make it all possible</p>
-        </div>
-
-        <div class="row g-4 mt-4">
-            <div class="col-lg-3 col-md-6">
-                <div class="team-card">
-                    <div class="team-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h4>Elena Caramelli</h4>
-                    <span class="team-role">Founder & Head Baker</span>
-                    <p>With over 30 years of experience, Elena is the heart and soul of our bakery.</p>
-                    <div class="team-social">
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                    </div>
-                </div>
+@if (Model.Reviews.Any())
+{
+    <!-- Real reviews -->
+    <section class="section">
+        <div class="container">
+            <div class="section-title">
+                <span class="section-subtitle">In Their Words</span>
+                <h2>What Our Customers Say</h2>
             </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="team-card">
-                    <div class="team-avatar">
-                        <i class="fas fa-user"></i>
+            <div class="row g-4 justify-content-center mt-2">
+                @foreach (var review in Model.Reviews)
+                {
+                    var comment = review.Comment ?? "";
+                    <div class="col-lg-4 col-md-6">
+                        <div class="testimonial-card">
+                            <div class="mb-3">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    <i class="@(i <= review.Rating ? "fas" : "far") fa-star" style="color: var(--accent-color);"></i>
+                                }
+                            </div>
+                            <p class="testimonial-text">"@(comment.Length > 200 ? comment[..200].TrimEnd() + "…" : comment)"</p>
+                            <p class="testimonial-author">@(string.IsNullOrWhiteSpace(review.ReviewerName) ? "Customer" : review.ReviewerName)</p>
+                            <p class="testimonial-role">
+                                <i class="fas fa-check-circle" style="color: #10B981;"></i> Verified buyer ·
+                                <a asp-controller="Products" asp-action="Details" asp-route-id="@review.ProductId" asp-fragment="reviews" style="color: inherit;">@review.ProductName</a>
+                            </p>
+                        </div>
                     </div>
-                    <h4>Marco Rossi</h4>
-                    <span class="team-role">Pastry Chef</span>
-                    <p>Marco brings French pastry techniques to create our delicate signature desserts.</p>
-                    <div class="team-social">
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="team-card">
-                    <div class="team-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h4>Sofia Dubois</h4>
-                    <span class="team-role">Cake Designer</span>
-                    <p>Sofia creates stunning custom cakes that make every celebration unforgettable.</p>
-                    <div class="team-social">
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3 col-md-6">
-                <div class="team-card">
-                    <div class="team-avatar">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <h4>James Baker</h4>
-                    <span class="team-role">Bread Specialist</span>
-                    <p>James crafts our award-winning sourdough and artisan bread collection.</p>
-                    <div class="team-social">
-                        <a href="#"><i class="fab fa-instagram"></i></a>
-                        <a href="#"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#"><i class="fab fa-twitter"></i></a>
-                    </div>
-                </div>
+                }
             </div>
         </div>
-    </div>
-</section>
+    </section>
+}
 
 <!-- CTA Section -->
 <section class="about-cta">
@@ -244,7 +281,7 @@
                     <a asp-controller="Products" asp-action="Index" class="btn-primary-custom">
                         <i class="fas fa-shopping-bag"></i> Shop Now
                     </a>
-                    <a href="#" class="btn-secondary-custom">
+                    <a href="@mapsUrl" target="_blank" rel="noopener" class="btn-secondary-custom">
                         <i class="fas fa-map-marker-alt"></i> Visit Us
                     </a>
                 </div>

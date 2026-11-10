@@ -1,0 +1,175 @@
+@model ProfilePageVM
+@{
+    ViewData["Title"] = "My Profile";
+    var profile = Model.Profile;
+    var showPassword = ViewData["ShowPassword"] as bool? ?? false;
+    var initial = string.IsNullOrEmpty(profile.FirstName) ? "U" : profile.FirstName.Substring(0, 1).ToUpper();
+    var fullName = $"{profile.FirstName} {profile.LastName}".Trim();
+    var editErrors = ViewData.ModelState.TryGetValue("Edit", out var e) ? e.Errors : null;
+    var passwordErrors = ViewData.ModelState.TryGetValue("Password", out var p) ? p.Errors : null;
+}
+
+<!-- Breadcrumb -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <i class="fas fa-chevron-right separator"></i>
+            <span class="current">My Profile</span>
+        </nav>
+    </div>
+</section>
+
+<section class="cart-section">
+    <div class="container">
+        <div class="cart-header">
+            <h1>My Profile</h1>
+            <p>Manage your personal details and password.</p>
+        </div>
+
+        <div class="account-nav">
+            <a asp-action="Profile" class="active"><i class="fas fa-user"></i> Profile</a>
+            <a asp-action="Orders"><i class="fas fa-shopping-bag"></i> My Orders</a>
+        </div>
+
+        @if (ViewData["Error"] is string error)
+        {
+            <div class="account-alert"><i class="fas fa-exclamation-circle"></i> @error</div>
+        }
+
+        <div class="row g-4">
+            <!-- Summary -->
+            <div class="col-lg-4">
+                <div class="account-card profile-summary">
+                    <div class="profile-avatar">@initial</div>
+                    <h4>@(string.IsNullOrEmpty(fullName) ? profile.UserName : fullName)</h4>
+                    <small class="text-muted">@profile.Email</small>
+
+                    <ul class="profile-meta">
+                        <li><span>Username</span><span>@profile.UserName</span></li>
+                        <li><span>Phone</span><span>@(string.IsNullOrEmpty(profile.PhoneNumber) ? "—" : profile.PhoneNumber)</span></li>
+                        <li>
+                            <span>Member since</span>
+                            <span>@(profile.CreatedAt == default ? "—" : profile.CreatedAt.ToString("MMMM d, yyyy"))</span>
+                        </li>
+                        <li><span>Orders</span><span>@Model.OrderCount</span></li>
+                    </ul>
+
+                    <a asp-action="Orders" class="btn-account mt-3">
+                        <i class="fas fa-shopping-bag"></i> View My Orders
+                    </a>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <!-- Edit profile -->
+                <div class="account-card">
+                    <h3><i class="fas fa-user-edit"></i> Personal Details</h3>
+
+                    @if (editErrors != null && editErrors.Count > 0)
+                    {
+                        <div class="account-alert">
+                            @foreach (var err in editErrors)
+                            {
+                                <div><i class="fas fa-exclamation-circle"></i> @err.ErrorMessage</div>
+                            }
+                        </div>
+                    }
+
+                    <form asp-action="Profile" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Edit.FirstName" class="form-label"></label>
+                                <input asp-for="Edit.FirstName" class="form-control" />
+                                <span asp-validation-for="Edit.FirstName" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Edit.LastName" class="form-label"></label>
+                                <input asp-for="Edit.LastName" class="form-control" />
+                                <span asp-validation-for="Edit.LastName" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" value="@profile.Email" readonly />
+                            <small class="text-muted">Your email is used to sign in and can't be changed here.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Edit.PhoneNumber" class="form-label"></label>
+                            <input asp-for="Edit.PhoneNumber" type="tel" class="form-control" placeholder="+1 234 567 890" />
+                            <span asp-validation-for="Edit.PhoneNumber" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Edit.Address" class="form-label"></label>
+                            <textarea asp-for="Edit.Address" class="form-control" rows="3" placeholder="Street, building, city"></textarea>
+                            <span asp-validation-for="Edit.Address" class="text-danger"></span>
+                            <small class="text-muted d-block">Used to pre-fill the checkout form.</small>
+                        </div>
+
+                        <button type="submit" class="btn-account">
+                            <i class="fas fa-save"></i> Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Change password -->
+                <div class="account-card" id="password">
+                    <h3><i class="fas fa-key"></i> Change Password</h3>
+
+                    @if (passwordErrors != null && passwordErrors.Count > 0)
+                    {
+                        <div class="account-alert">
+                            @foreach (var err in passwordErrors)
+                            {
+                                <div><i class="fas fa-exclamation-circle"></i> @err.ErrorMessage</div>
+                            }
+                        </div>
+                    }
+
+                    <form asp-action="ChangePassword" method="post">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <label asp-for="Password.CurrentPassword" class="form-label"></label>
+                            <input asp-for="Password.CurrentPassword" class="form-control" autocomplete="current-password" />
+                            <span asp-validation-for="Password.CurrentPassword" class="text-danger"></span>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Password.NewPassword" class="form-label"></label>
+                                <input asp-for="Password.NewPassword" class="form-control" autocomplete="new-password" />
+                                <span asp-validation-for="Password.NewPassword" class="text-danger"></span>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label asp-for="Password.ConfirmPassword" class="form-label"></label>
+                                <input asp-for="Password.ConfirmPassword" class="form-control" autocomplete="new-password" />
+                                <span asp-validation-for="Password.ConfirmPassword" class="text-danger"></span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-account">
+                            <i class="fas fa-lock"></i> Update Password
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<partial name="_AccountStyles" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    @if (showPassword)
+    {
+        <script>
+            document.getElementById('password')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        </script>
+    }
+}

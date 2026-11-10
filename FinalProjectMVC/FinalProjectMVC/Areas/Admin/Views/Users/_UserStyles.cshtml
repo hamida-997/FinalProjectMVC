@@ -1,0 +1,101 @@
+@* Shared styles for the Users pages, in the bakery colours used by the rest of the admin *@
+<style>
+    /* Form cards (these classes were used but never defined) */
+    .admin-form-wrapper .row { row-gap: 24px; }
+    .form-card {
+        background: #fff;
+        border-radius: 15px;
+        box-shadow: var(--shadow);
+        padding: 25px;
+        height: 100%;
+    }
+    .form-card-title {
+        font-family: 'Georgia', serif;
+        font-size: 1.15rem;
+        color: var(--secondary-color);
+        margin: 0 0 20px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #F0E6D9;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .form-card-title i { color: var(--primary-color); }
+    .form-card .form-group { margin-bottom: 18px; }
+    .form-card .form-group:last-child { margin-bottom: 0; }
+    .form-card .form-label { font-weight: 600; color: var(--text-dark); font-size: 0.9rem; }
+    .form-card .form-control { border-radius: 10px; border: 2px solid #F0E6D9; padding: 10px 14px; }
+    .form-card .form-control:focus { border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(212, 165, 116, 0.2); }
+    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .user-form-alert {
+        display: flex; gap: 12px; align-items: flex-start;
+        background: #FFE4E6; border: 1px solid #FFBDC2; color: #9F1239;
+        border-radius: 12px; padding: 14px 18px; margin-top: 16px;
+    }
+    .user-form-alert i { margin-top: 3px; }
+
+    .info-banner {
+        background: #FFF8F0;
+        border: 1px solid #F0E6D9;
+        border-left: 4px solid var(--secondary-color);
+        color: var(--text-dark);
+        padding: 14px 20px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+    .info-banner i { font-size: 1.3rem; color: var(--secondary-color); }
+
+    /* Role badges */
+    .role-badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        margin: 0 4px 4px 0;
+    }
+    .role-superadmin { background: #8B4513; color: #fff; }
+    .role-admin { background: #FFE4B5; color: #8B4513; }
+    .role-customer { background: #E0F2FE; color: #075985; }
+
+    /* Role checkboxes */
+    .roles-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 15px; }
+    .role-checkbox {
+        padding: 15px 15px 15px 2.6em;
+        border: 2px solid #F0E6D9;
+        border-radius: 12px;
+        transition: all 0.2s ease;
+        margin: 0;
+    }
+    .role-checkbox:hover { border-color: var(--primary-color); background: #FFF9F0; }
+    .role-checkbox:has(input:checked) { border-color: var(--secondary-color); background: #FFF8F0; }
+    .role-checkbox .form-check-input:checked { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+    .role-checkbox .form-check-label { display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+    .role-description { font-size: 0.85rem; color: var(--text-light); }
+
+    /* Buttons */
+    .btn-admin-warning {
+        background: #fff;
+        color: var(--secondary-color);
+        border: 2px solid var(--primary-color);
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+    .btn-admin-warning:hover { background: var(--primary-color); color: #fff; }
+
+    /* Avatars */
+    .user-avatar-initial {
+        width: 40px; height: 40px; border-radius: 50%; flex-shrink: 0;
+        background: linear-gradient(135deg, #D2691E, #8B4513); color: #fff;
+        display: flex; align-items: center; justify-content: center; font-weight: 700;
+    }
+</style>

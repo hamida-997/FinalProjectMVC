@@ -1,4 +1,5 @@
-﻿@{
+@model HomeVM
+@{
     ViewData["Title"] = "Home";
 }
 
@@ -36,7 +37,7 @@
             <h2>Why Choose Us</h2>
             <p>We're committed to delivering the best bakery experience with quality, freshness, and taste</p>
         </div>
-        
+
         <div class="row g-4">
             <div class="col-lg-3 col-md-6">
                 <div class="feature-card">
@@ -47,7 +48,7 @@
                     <p>We use only the finest, locally-sourced organic ingredients in all our products.</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -57,7 +58,7 @@
                     <p>Everything is freshly baked every morning to ensure maximum taste and quality.</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -67,7 +68,7 @@
                     <p>Recognized for excellence with multiple awards for our artisan techniques.</p>
                 </div>
             </div>
-            
+
             <div class="col-lg-3 col-md-6">
                 <div class="feature-card">
                     <div class="feature-icon">
@@ -82,99 +83,31 @@
 </section>
 
 <!-- Featured Products Section -->
+@* These used to be six hard-coded products that don't exist in the shop, with "Add to Cart"
+   links to "#". They now come from the API, using the same card as the shop. *@
 <section class="section" style="background-color: var(--bg-cream);">
     <div class="container">
         <div class="section-title">
             <h2>Featured Products</h2>
-            <p>Discover our most popular and beloved bakery items</p>
+            <p>Our best-rated and newest bakery items</p>
         </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="product-card">
-                    <div class="product-image">
-                        <i class="fas fa-bread-slice" style="font-size: 100px; color: var(--primary-color);"></i>
+
+        @if (Model.FeaturedProducts.Any())
+        {
+            <div class="row g-4">
+                @foreach (var product in Model.FeaturedProducts)
+                {
+                    <div class="col-lg-4 col-md-6">
+                        <partial name="_ProductCard" model="product" />
                     </div>
-                    <div class="product-info">
-                        <h4>Artisan Sourdough</h4>
-                        <p class="product-price">$8.99</p>
-                        <p>Classic sourdough with a perfect crust and soft, tangy interior.</p>
-                        <a href="#" class="btn-primary-custom btn-sm">Add to Cart</a>
-                    </div>
-                </div>
+                }
             </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="product-card">
-                    <div class="product-image">
-                        <i class="fas fa-cookie" style="font-size: 100px; color: var(--primary-color);"></i>
-                    </div>
-                    <div class="product-info">
-                        <h4>Chocolate Chip Cookies</h4>
-                        <p class="product-price">$12.99</p>
-                        <p>Dozen fresh-baked cookies loaded with premium chocolate chips.</p>
-                        <a href="#" class="btn-primary-custom btn-sm">Add to Cart</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="product-card">
-                    <div class="product-image">
-                        <i class="fas fa-birthday-cake" style="font-size: 100px; color: var(--primary-color);"></i>
-                    </div>
-                    <div class="product-info">
-                        <h4>Custom Celebration Cake</h4>
-                        <p class="product-price">$45.99</p>
-                        <p>Beautiful custom cakes for any special occasion you celebrate.</p>
-                        <a href="#" class="btn-primary-custom btn-sm">Order Now</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="product-card">
-                    <div class="product-image">
-                        <i class="fas fa-croissant" style="font-size: 100px; color: var(--primary-color);"></i>
-                    </div>
-                    <div class="product-info">
-                        <h4>Butter Croissant</h4>
-                        <p class="product-price">$4.99</p>
-                        <p>Flaky, buttery perfection in every layer of our French croissant.</p>
-                        <a href="#" class="btn-primary-custom btn-sm">Add to Cart</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="product-card">
-                    <div class="product-image">
-                        <i class="fas fa-pizza-slice" style="font-size: 100px; color: var(--primary-color);"></i>
-                    </div>
-                    <div class="product-info">
-                        <h4>Fruit Danish</h4>
-                        <p class="product-price">$5.99</p>
-                        <p>Light, flaky pastry topped with fresh seasonal fruit and glaze.</p>
-                        <a href="#" class="btn-primary-custom btn-sm">Add to Cart</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="product-card">
-                    <div class="product-image">
-                        <i class="fas fa-cheese" style="font-size: 100px; color: var(--primary-color);"></i>
-                    </div>
-                    <div class="product-info">
-                        <h4>Cheesecake Slice</h4>
-                        <p class="product-price">$7.99</p>
-                        <p>Rich, creamy New York style cheesecake with graham crust.</p>
-                        <a href="#" class="btn-primary-custom btn-sm">Add to Cart</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
+        }
+        else
+        {
+            <p class="text-center text-muted">Our menu is being updated. Please check back soon!</p>
+        }
+
         <div class="text-center mt-5">
             <a asp-controller="Products" asp-action="Index" class="btn-primary-custom">View All Products</a>
         </div>
@@ -193,8 +126,9 @@
             </div>
             <div class="col-lg-3 col-md-6">
                 <div class="stat-item">
-                    <span class="stat-number">150+</span>
-                    <span class="stat-label">Products Available</span>
+                    @* Was a fixed "150+"; now the real number of products in the shop *@
+                    <span class="stat-number">@Model.ProductCount</span>
+                    <span class="stat-label">Product@(Model.ProductCount == 1 ? "" : "s") Available</span>
                 </div>
             </div>
             <div class="col-lg-3 col-md-6">
@@ -218,61 +152,45 @@
     <div class="container">
         <div class="section-title">
             <h2>What Our Customers Say</h2>
-            <p>Read what people are saying about our bakery</p>
+            <p>Recent reviews from customers who bought from us</p>
         </div>
-        
-        <div class="row g-4">
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card">
-                    <div class="mb-3">
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
+
+        @* These were three made-up testimonials. They are now the latest real 4-5 star reviews
+           (with a comment) from verified buyers. *@
+        @if (Model.Testimonials.Any())
+        {
+            <div class="row g-4 justify-content-center">
+                @foreach (var review in Model.Testimonials)
+                {
+                    var comment = review.Comment ?? "";
+                    <div class="col-lg-4 col-md-6">
+                        <div class="testimonial-card">
+                            <div class="mb-3" aria-label="@review.Rating out of 5 stars">
+                                @for (var i = 1; i <= 5; i++)
+                                {
+                                    <i class="@(i <= review.Rating ? "fas" : "far") fa-star" style="color: var(--accent-color);"></i>
+                                }
+                            </div>
+                            <p class="testimonial-text">
+                                "@(comment.Length > 220 ? comment[..220].TrimEnd() + "…" : comment)"
+                            </p>
+                            <p class="testimonial-author">@(string.IsNullOrWhiteSpace(review.ReviewerName) ? "Customer" : review.ReviewerName)</p>
+                            <p class="testimonial-role">
+                                <i class="fas fa-check-circle" style="color: #10B981;"></i> Verified buyer ·
+                                <a asp-controller="Products" asp-action="Details" asp-route-id="@review.ProductId" asp-fragment="reviews"
+                                   style="color: inherit;">@review.ProductName</a>
+                            </p>
+                        </div>
                     </div>
-                    <p class="testimonial-text">
-                        "The best bakery in town! Their croissants are absolutely divine, and the customer service is exceptional. I'm a regular customer now!"
-                    </p>
-                    <p class="testimonial-author">Sarah Johnson</p>
-                    <p class="testimonial-role">Food Blogger</p>
-                </div>
+                }
             </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card">
-                    <div class="mb-3">
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                    </div>
-                    <p class="testimonial-text">
-                        "Ordered a custom birthday cake and it exceeded all expectations! Beautiful design, incredible taste. Will definitely order again!"
-                    </p>
-                    <p class="testimonial-author">Michael Chen</p>
-                    <p class="testimonial-role">Event Planner</p>
-                </div>
-            </div>
-            
-            <div class="col-lg-4 col-md-6">
-                <div class="testimonial-card">
-                    <div class="mb-3">
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                        <i class="fas fa-star" style="color: var(--accent-color);"></i>
-                    </div>
-                    <p class="testimonial-text">
-                        "Fresh, delicious, and made with quality ingredients. You can really taste the difference. My family loves their sourdough bread!"
-                    </p>
-                    <p class="testimonial-author">Emily Rodriguez</p>
-                    <p class="testimonial-role">Home Chef</p>
-                </div>
-            </div>
-        </div>
+        }
+        else
+        {
+            <p class="text-center text-muted">
+                No reviews yet. <a asp-controller="Products" asp-action="Index">Order something</a> and be the first to share what you think!
+            </p>
+        }
     </div>
 </section>
 
@@ -283,8 +201,10 @@
         <p style="font-size: 1.2rem; color: var(--text-light); margin-bottom: 30px; max-width: 600px; margin-left: auto; margin-right: auto;">
             Stop by our bakery for a warm, welcoming experience and the freshest baked goods in town.
         </p>
-        <a asp-controller="Home" asp-action="Contact" class="btn-primary-custom" style="font-size: 1.1rem; padding: 16px 40px;">
-            Get Directions
+        @* Was a link to Home/Contact, which doesn't exist (404). Opens the footer address in Google Maps. *@
+        <a href="https://www.google.com/maps/search/?api=1&amp;query=@Uri.EscapeDataString("123 Bakery Street, Sweet City")"
+           target="_blank" rel="noopener" class="btn-primary-custom" style="font-size: 1.1rem; padding: 16px 40px;">
+            <i class="fas fa-map-marker-alt"></i> Get Directions
         </a>
     </div>
 </section>

@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -27,15 +28,39 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             _authService = authService;
         }
 
-        public async Task<IActionResult> Index()
+        // GET: Admin/Products?search=cake&stock=out
+        public async Task<IActionResult> Index(string? search, string? stock, int page = 1)
         {
             if (!HasAdminAccess())
             {
                 return RedirectToLogin();
             }
 
-            var products = await _productService.GetAllProductsAsync();
-            return View(products);
+            var all = await _productService.GetAllProductsAsync();
+            IEnumerable<ProductVM> products = all;
+
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim();
+                products = products.Where(p =>
+                    p.Name.Contains(term, StringComparison.OrdinalIgnoreCase) ||
+                    p.CategoryName.Contains(term, StringComparison.OrdinalIgnoreCase));
+            }
+
+            products = stock switch
+            {
+                "out" => products.Where(p => p.StockQuantity == 0),
+                "low" => products.Where(p => p.StockQuantity > 0 && p.StockQuantity < 10),
+                "available" => products.Where(p => p.IsAvailable),
+                "hidden" => products.Where(p => !p.IsAvailable),
+                _ => products
+            };
+
+            // Stat cards always describe the whole catalog, not the filtered list
+            ViewBag.AllProducts = all;
+            ViewBag.Search = search;
+            ViewBag.Stock = stock;
+            return View(products.Paginate(page, ViewData));
         }
 
         [HttpGet]
@@ -47,7 +72,8 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             }
 
             await LoadCategoriesDropdown();
-            return View();
+            // Pass a model so defaults apply (e.g. "Available for sale" starts checked)
+            return View(new CreateProductVM());
         }
 
         [HttpPost]
@@ -59,6 +85,8 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
                 return RedirectToLogin();
             }
 
+            ValidateImages(model.Images);
+
             if (!ModelState.IsValid)
             {
                 await LoadCategoriesDropdown();
@@ -67,15 +95,91 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _productService.CreateProductAsync(model);
 
-            if (result == null)
+            if (result.StatusCode is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden)
             {
-                ModelState.AddModelError(string.Empty, "Failed to create product. Please try again.");
+                await _authService.LogoutAsync();
+                TempData["ErrorMessage"] = "Your session has expired. Please log in again.";
+                return RedirectToAction("Login", "Auth", new { area = "", returnUrl = Url.Action("Create", "Products", new { area = "Admin" }) });
+            }
+
+            if (!result.Success || result.Data == null)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to create product. Please try again.");
                 await LoadCategoriesDropdown();
                 return View(model);
             }
 
-            TempData["SuccessMessage"] = $"Product '{result.Name}' created successfully.";
+            var product = result.Data;
+
+            // The photo the admin picked becomes the main (cover) photo
+            var primaryIndex = model.PrimaryImageIndex >= 0 && model.PrimaryImageIndex < model.Images.Count
+                ? model.PrimaryImageIndex
+                : 0;
+
+            var uploaded = 0;
+            var primaryUploaded = false;
+            ProductImageVM? firstUploaded = null;
+            for (var i = 0; i < model.Images.Count; i++)
+            {
+                var isPrimary = i == primaryIndex;
+                var image = await _productImageService.UploadImageAsync(product.Id, model.Images[i], isPrimary);
+                if (image != null)
+                {
+                    uploaded++;
+                    firstUploaded ??= image;
+                    if (isPrimary) primaryUploaded = true;
+                }
+            }
+
+            // If the chosen main photo failed, use another one so the product still has a cover
+            if (!primaryUploaded && firstUploaded != null)
+            {
+                await _productImageService.SetPrimaryAsync(product.Id, firstUploaded.Id);
+            }
+
+            if (uploaded == 0)
+            {
+                // A product must have a photo: undo the create so no photo-less product is left behind
+                await _productService.DeleteProductAsync(product.Id);
+                ModelState.AddModelError(string.Empty, "The photos could not be uploaded, so the product was not created. Please try again.");
+                await LoadCategoriesDropdown();
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = uploaded == model.Images.Count
+                ? $"Product '{product.Name}' created with {uploaded} photo{(uploaded != 1 ? "s" : "")}."
+                : $"Product '{product.Name}' created, but only {uploaded} of {model.Images.Count} photos uploaded.";
             return RedirectToAction(nameof(Index));
+        }
+
+        private void ValidateImages(List<IFormFile> images)
+        {
+            var key = nameof(CreateProductVM.Images);
+            images.RemoveAll(f => f == null || f.Length == 0);
+
+            if (images.Count == 0)
+            {
+                ModelState.AddModelError(key, "Please add at least one product photo.");
+                return;
+            }
+
+            if (images.Count > CreateProductVM.MaxImages)
+            {
+                ModelState.AddModelError(key, $"You can upload up to {CreateProductVM.MaxImages} photos.");
+            }
+
+            foreach (var file in images)
+            {
+                var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+                if (!CreateProductVM.AllowedImageExtensions.Contains(ext))
+                {
+                    ModelState.AddModelError(key, $"'{file.FileName}' is not a supported image (JPG, PNG, GIF, WEBP).");
+                }
+                else if (file.Length > CreateProductVM.MaxImageBytes)
+                {
+                    ModelState.AddModelError(key, $"'{file.FileName}' is larger than 5 MB.");
+                }
+            }
         }
 
         [HttpGet]
@@ -104,7 +208,8 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
                 CategoryId = product.CategoryId
             };
 
-            await LoadCategoriesDropdown();
+            ViewBag.Images = product.Images;
+            await LoadCategoriesDropdown(product.CategoryId);
             return View(model);
         }
 
@@ -119,21 +224,34 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             if (!ModelState.IsValid)
             {
-                await LoadCategoriesDropdown();
-                return View(model);
+                return await RedisplayEditAsync(model);
             }
 
             var result = await _productService.UpdateProductAsync(model.Id, model);
 
-            if (result == null)
+            if (result.StatusCode is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden)
             {
-                ModelState.AddModelError(string.Empty, "Failed to update product. Please try again.");
-                await LoadCategoriesDropdown();
-                return View(model);
+                await _authService.LogoutAsync();
+                TempData["ErrorMessage"] = "Your session has expired. Please log in again.";
+                return RedirectToAction("Login", "Auth", new { area = "", returnUrl = Url.Action("Edit", "Products", new { area = "Admin", id = model.Id }) });
             }
 
-            TempData["SuccessMessage"] = $"Product '{result.Name}' updated successfully.";
+            if (!result.Success || result.Data == null)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to update product. Please try again.");
+                return await RedisplayEditAsync(model);
+            }
+
+            TempData["SuccessMessage"] = $"Product '{result.Data.Name}' updated successfully.";
             return RedirectToAction(nameof(Index));
+        }
+
+        private async Task<IActionResult> RedisplayEditAsync(UpdateProductVM model)
+        {
+            var product = await _productService.GetProductByIdAsync(model.Id);
+            ViewBag.Images = product?.Images ?? new List<ProductImageVM>();
+            await LoadCategoriesDropdown(model.CategoryId);
+            return View(nameof(Edit), model);
         }
 
         [HttpPost]
@@ -147,16 +265,17 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _productService.DeleteProductAsync(id);
 
-            if (result)
+            if (result.Success)
             {
                 TempData["SuccessMessage"] = "Product deleted successfully.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Failed to delete product. It may have associated orders.";
+                return RedirectToAction(nameof(Index));
             }
 
-            return RedirectToAction(nameof(Index));
+            // e.g. "'Cake' appears in past orders, so it can't be deleted..."
+            TempData["ErrorMessage"] = result.ErrorMessage ?? "Failed to delete product.";
+            return result.StatusCode == StatusCodes.Status404NotFound
+                ? RedirectToAction(nameof(Index))
+                : RedirectToAction(nameof(Edit), new { id });
         }
 
         [HttpGet]
@@ -200,6 +319,16 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
                 TempData["ErrorMessage"] = "Please select a file to upload.";
                 return RedirectToAction(nameof(Images), new { id = productId });
             }
+
+            var existing = await _productImageService.GetImagesByProductAsync(productId);
+            if (existing.Count >= CreateProductVM.MaxImages)
+            {
+                TempData["ErrorMessage"] = $"A product can have up to {CreateProductVM.MaxImages} photos. Delete one first.";
+                return RedirectToAction(nameof(Images), new { id = productId });
+            }
+
+            // The first photo of a product always becomes the main one
+            if (existing.Count == 0) isPrimary = true;
 
             var result = await _productImageService.UploadImageAsync(productId, file, isPrimary);
 
@@ -261,10 +390,12 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             return RedirectToAction(nameof(Images), new { id = productId });
         }
 
-        private async Task LoadCategoriesDropdown()
+        // keepCategoryId: when editing, keep the product's current category in the list even if it
+        // is inactive, otherwise the dropdown shows nothing selected and saving fails validation
+        private async Task LoadCategoriesDropdown(int? keepCategoryId = null)
         {
             var categories = await _categoryService.GetAllCategoriesAsync();
-            var activeCategories = categories.Where(c => c.IsActive).ToList();
+            var activeCategories = categories.Where(c => c.IsActive || c.Id == keepCategoryId).ToList();
 
             ViewBag.Categories = new SelectList(activeCategories, "Id", "Name");
         }

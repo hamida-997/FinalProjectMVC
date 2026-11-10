@@ -29,6 +29,14 @@
                                             {
                                                 <span>@error.ErrorMessage</span>
                                             }
+                                            @if (ViewData["EmailNotConfirmed"] is true)
+                                            {
+                                                <div class="mt-2">
+                                                    <a asp-controller="Auth" asp-action="ResendConfirmation" asp-route-email="@Model?.Email" class="auth-link">
+                                                        <i class="fas fa-paper-plane"></i> Resend confirmation email
+                                                    </a>
+                                                </div>
+                                            }
                                         </div>
                                     }
 

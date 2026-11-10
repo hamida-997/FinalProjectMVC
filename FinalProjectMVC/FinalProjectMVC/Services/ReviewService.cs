@@ -18,6 +18,12 @@ namespace FinalProjectMVC.Services
             return reviews ?? new List<ReviewVM>();
         }
 
+        public async Task<List<ReviewVM>> GetFeaturedReviewsAsync(int count = 3)
+        {
+            var reviews = await _apiService.GetAsync<List<ReviewVM>>($"api/reviews/featured?count={count}");
+            return reviews ?? new List<ReviewVM>();
+        }
+
         public async Task<List<ReviewVM>> GetAllReviewsAsync(int? productId = null)
         {
             var endpoint = productId.HasValue ? $"api/reviews?productId={productId.Value}" : "api/reviews";

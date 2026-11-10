@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,7 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
         }
 
         // GET: Admin/Reviews?productId=5&rating=1
-        public async Task<IActionResult> Index(int? productId, int? rating)
+        public async Task<IActionResult> Index(int? productId, int? rating, int page = 1)
         {
             var reviews = await _reviewService.GetAllReviewsAsync(productId);
 
@@ -33,13 +34,13 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             ViewBag.ProductId = productId;
             ViewBag.Rating = rating;
 
-            return View(reviews);
+            return View(reviews.OrderByDescending(r => r.CreatedAt).Paginate(page, ViewData));
         }
 
         // POST: Admin/Reviews/Delete
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id, int? productId, int? rating)
+        public async Task<IActionResult> Delete(int id, int? productId, int? rating, int page = 1)
         {
             if (await _reviewService.DeleteReviewAsync(id))
             {
@@ -51,7 +52,8 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             }
 
             // Keep the admin's current filters
-            return RedirectToAction(nameof(Index), new { productId, rating });
+            // Keep the page too; Paginate clamps it if that page is now empty
+            return RedirectToAction(nameof(Index), new { productId, rating, page = page > 1 ? page : (int?)null });
         }
     }
 }

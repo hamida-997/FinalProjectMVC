@@ -12,5 +12,6 @@ namespace FinalProjectMVC.Services.Interfaces
         Task<ApiResult<T>> GetWithResultAsync<T>(string endpoint);
         Task<ApiResult<T>> PostWithResultAsync<T>(string endpoint, object data);
         Task<ApiResult<T>> PutWithResultAsync<T>(string endpoint, object data);
+        Task<ApiResult<object>> DeleteWithResultAsync(string endpoint);
     }
 }

@@ -6,7 +6,7 @@ namespace FinalProjectMVC.Services.Interfaces
     {
         Task<List<OrderVM>> GetAllOrdersAsync();
         Task<OrderVM?> GetOrderByIdAsync(int id);
-        Task<OrderVM?> UpdateOrderStatusAsync(int id, UpdateOrderStatusVM model);
-        Task<bool> CancelOrderAsync(int id);
+        Task<ApiResult<OrderVM>> UpdateOrderStatusAsync(int id, UpdateOrderStatusVM model);
+        Task<ApiResult<object>> CancelOrderAsync(int id);
     }
 }

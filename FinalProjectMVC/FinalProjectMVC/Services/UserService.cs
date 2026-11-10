@@ -37,7 +37,7 @@ namespace FinalProjectMVC.Services
             return await _apiService.GetAsync<UserVM>($"api/users/{id}");
         }
 
-        public async Task<UserVM?> CreateUserAsync(CreateUserVM model)
+        public Task<ApiResult<UserVM>> CreateUserAsync(CreateUserVM model)
         {
             var data = new
             {
@@ -51,10 +51,10 @@ namespace FinalProjectMVC.Services
                 roles = model.Roles
             };
 
-            return await _apiService.PostAsync<UserVM>("api/users", data);
+            return _apiService.PostWithResultAsync<UserVM>("api/users", data);
         }
 
-        public async Task<bool> UpdateUserAsync(string id, UpdateUserVM model)
+        public Task<ApiResult<object>> UpdateUserAsync(string id, UpdateUserVM model)
         {
             var data = new
             {
@@ -66,16 +66,15 @@ namespace FinalProjectMVC.Services
                 roles = model.Roles
             };
 
-            var result = await _apiService.PutWithResultAsync<object>($"api/users/{id}", data);
-            return result.Success;
+            return _apiService.PutWithResultAsync<object>($"api/users/{id}", data);
         }
 
-        public async Task<bool> DeleteUserAsync(string id)
+        public Task<ApiResult<object>> DeleteUserAsync(string id)
         {
-            return await _apiService.DeleteAsync($"api/users/{id}");
+            return _apiService.DeleteWithResultAsync($"api/users/{id}");
         }
 
-        public async Task<bool> ChangePasswordAsync(string id, ChangePasswordVM model)
+        public Task<ApiResult<object>> ChangePasswordAsync(string id, ChangePasswordVM model)
         {
             var data = new
             {
@@ -83,14 +82,12 @@ namespace FinalProjectMVC.Services
                 newPassword = model.NewPassword
             };
 
-            var result = await _apiService.PostWithResultAsync<object>($"api/users/{id}/change-password", data);
-            return result.Success;
+            return _apiService.PostWithResultAsync<object>($"api/users/{id}/change-password", data);
         }
 
-        public async Task<bool> ToggleUserStatusAsync(string id)
+        public Task<ApiResult<object>> ToggleUserStatusAsync(string id)
         {
-            var result = await _apiService.PostWithResultAsync<object>($"api/users/{id}/toggle-status", new { });
-            return result.Success;
+            return _apiService.PostWithResultAsync<object>($"api/users/{id}/toggle-status", new { });
         }
 
         public async Task<List<string>> GetRolesAsync()

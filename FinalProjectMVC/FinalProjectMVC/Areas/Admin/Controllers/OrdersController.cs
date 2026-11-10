@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -18,22 +19,23 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             _authService = authService;
         }
 
-        public async Task<IActionResult> Index(OrderStatus? status)
+        public async Task<IActionResult> Index(OrderStatus? status, int page = 1)
         {
             if (!HasAdminAccess())
             {
                 return RedirectToLogin();
             }
 
-            var orders = await _orderService.GetAllOrdersAsync();
+            IEnumerable<OrderVM> orders = await _orderService.GetAllOrdersAsync();
 
             if (status.HasValue)
             {
-                orders = orders.Where(o => o.Status == status.Value).ToList();
+                orders = orders.Where(o => o.Status == status.Value);
             }
 
             ViewBag.SelectedStatus = status;
-            return View(orders);
+            // Sort before paging so page 1 holds the newest orders
+            return View(orders.OrderByDescending(o => o.OrderDate).Paginate(page, ViewData));
         }
 
         public async Task<IActionResult> Details(int id)
@@ -70,13 +72,13 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _orderService.UpdateOrderStatusAsync(id, model);
 
-            if (result != null)
+            if (result.Success)
             {
-                TempData["SuccessMessage"] = $"Order status updated to {status}.";
+                TempData["SuccessMessage"] = $"Order #{id} is now {OrderStatusText.Label(status)}.";
             }
             else
             {
-                TempData["ErrorMessage"] = "Failed to update order status.";
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Failed to update order status.";
             }
 
             return RedirectToAction(nameof(Details), new { id });
@@ -93,13 +95,13 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _orderService.CancelOrderAsync(id);
 
-            if (result)
+            if (result.Success)
             {
-                TempData["SuccessMessage"] = "Order cancelled successfully.";
+                TempData["SuccessMessage"] = $"Order #{id} cancelled.";
             }
             else
             {
-                TempData["ErrorMessage"] = "Failed to cancel order. It may already be delivered or cancelled.";
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Failed to cancel order. It may already be delivered or cancelled.";
             }
 
             return RedirectToAction(nameof(Details), new { id });

@@ -1,6 +1,7 @@
 @model CreateUserVM
 @{
     ViewData["Title"] = "Create User";
+    var summaryErrors = ViewData.ModelState[string.Empty]?.Errors;
 }
 
 <section class="admin-page-section">
@@ -23,6 +24,14 @@
             </div>
         </div>
 
+        @if (summaryErrors != null && summaryErrors.Count > 0)
+        {
+            <div class="user-form-alert">
+                <i class="fas fa-exclamation-circle"></i>
+                <div>@foreach (var error in summaryErrors) { <div>@error.ErrorMessage</div> }</div>
+            </div>
+        }
+
         <!-- Form -->
         <div class="admin-form-wrapper mt-4">
             <form asp-area="Admin" asp-controller="Users" asp-action="Create" method="post">
@@ -38,25 +47,25 @@
 
                             <div class="form-group">
                                 <label asp-for="UserName" class="form-label">Username</label>
-                                <input asp-for="UserName" class="form-control" placeholder="Enter username" />
+                                <input asp-for="UserName" class="form-control" placeholder="Enter username" autocomplete="off" />
                                 <span asp-validation-for="UserName" class="text-danger"></span>
                             </div>
 
                             <div class="form-group">
                                 <label asp-for="Email" class="form-label">Email Address</label>
-                                <input asp-for="Email" type="email" class="form-control" placeholder="Enter email" />
+                                <input asp-for="Email" type="email" class="form-control" placeholder="Enter email" autocomplete="off" />
                                 <span asp-validation-for="Email" class="text-danger"></span>
                             </div>
 
                             <div class="form-group">
                                 <label asp-for="Password" class="form-label">Password</label>
-                                <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" />
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Enter password" autocomplete="new-password" />
                                 <span asp-validation-for="Password" class="text-danger"></span>
                             </div>
 
                             <div class="form-group">
                                 <label asp-for="ConfirmPassword" class="form-label">Confirm Password</label>
-                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" />
+                                <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Confirm password" autocomplete="new-password" />
                                 <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                             </div>
                         </div>
@@ -101,37 +110,7 @@
                             <h3 class="form-card-title">
                                 <i class="fas fa-user-tag"></i> User Roles
                             </h3>
-
-                            <div class="roles-container">
-                                @{
-                                    var rolesList = ViewBag.Roles as List<string>;
-                                    for (int i = 0; i < rolesList.Count; i++)
-                                    {
-                                        var role = rolesList[i];
-                                        <div class="form-check role-checkbox">
-                                            <input type="checkbox" class="form-check-input" name="Roles[@i]" value="@role" id="role_@role" />
-                                            <label class="form-check-label" for="role_@role">
-                                                <span class="role-badge role-@role.ToLower()">@role</span>
-                                                <span class="role-description">
-                                                    @switch (role)
-                                                    {
-                                                        case "SuperAdmin":
-                                                            @:Full system access with all privileges
-                                                            break;
-                                                        case "Admin":
-                                                            @:Manage products, orders, and users
-                                                            break;
-                                                        case "Customer":
-                                                            @:Browse products and place orders
-                                                            break;
-                                                    }
-                                                </span>
-                                            </label>
-                                        </div>
-                                    }
-                                }
-                            </div>
-                            <span asp-validation-for="Roles" class="text-danger"></span>
+                            <partial name="_RoleCheckboxes" model="Model.Roles" />
                         </div>
                     </div>
                 </div>
@@ -150,48 +129,8 @@
     </div>
 </section>
 
-<style>
-    .roles-container {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 15px;
-    }
-
-    .role-checkbox {
-        padding: 15px;
-        border: 2px solid #e2e8f0;
-        border-radius: 10px;
-        transition: all 0.3s ease;
-    }
-
-    .role-checkbox:hover {
-        border-color: #8B4513;
-        background: #FFF9F0;
-    }
-
-    .role-checkbox input:checked ~ label {
-        font-weight: 600;
-    }
-
-    .role-checkbox input:checked ~ label .role-badge {
-        transform: scale(1.05);
-    }
-
-    .form-check-label {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        cursor: pointer;
-    }
-
-    .role-description {
-        font-size: 0.85rem;
-        color: #718096;
-    }
-</style>
+<partial name="_UserStyles" />
 
 @section Scripts {
-    @{
-        await Html.RenderPartialAsync("_ValidationScriptsPartial");
-    }
+    <partial name="_ValidationScriptsPartial" />
 }

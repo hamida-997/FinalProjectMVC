@@ -34,6 +34,20 @@
                 }, 3500);
             </script>
         }
+        @* Controllers set ErrorMessage (e.g. "not enough stock"), but it was never shown here *@
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="success-toast error-toast" id="errorToast" onclick="this.remove()" title="Click to close" role="alert">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>@TempData["ErrorMessage"]</span>
+            </div>
+            <script>
+                setTimeout(() => {
+                    const toast = document.getElementById('errorToast');
+                    if (toast) toast.remove();
+                }, 6000);
+            </script>
+        }
         @RenderBody()
     </main>
 
@@ -44,6 +58,7 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/password-toggle.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

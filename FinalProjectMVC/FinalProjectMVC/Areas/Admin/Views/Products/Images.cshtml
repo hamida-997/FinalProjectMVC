@@ -1,147 +1,170 @@
 @model ProductImagesVM
 @{
     ViewData["Title"] = $"Images - {Model.ProductName}";
-    var apiBaseUrl = Context.RequestServices.GetRequiredService<IConfiguration>()["ApiSettings:BaseUrl"] ?? "https://localhost:7001";
+    var max = CreateProductVM.MaxImages;
+    var count = Model.Images.Count;
+    var isFull = count >= max;
+    var hasPrimary = Model.Images.Any(i => i.IsPrimary);
 }
 
-<section class="admin-page-section">
+<section class="admin-page-section product-images-page">
     <div class="container-fluid">
         <!-- Page Header -->
         <div class="admin-page-header">
             <div>
                 <h1 class="admin-page-title">
-                    <i class="fas fa-images"></i> Product Images
+                    <i class="fas fa-images"></i> Product Photos
                 </h1>
-                <p class="admin-page-subtitle">Manage images for <strong>@Model.ProductName</strong></p>
+                <p class="admin-page-subtitle">Manage photos for <strong>@Model.ProductName</strong></p>
             </div>
-            <div class="admin-breadcrumb">
-                <i class="fas fa-home"></i>
-                <span>Admin</span>
-                <i class="fas fa-chevron-right separator"></i>
-                <a asp-area="Admin" asp-controller="Products" asp-action="Index">Products</a>
-                <i class="fas fa-chevron-right separator"></i>
-                <span class="current">Images</span>
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="admin-breadcrumb">
+                    <i class="fas fa-home"></i>
+                    <span>Admin</span>
+                    <i class="fas fa-chevron-right separator"></i>
+                    <a asp-area="Admin" asp-controller="Products" asp-action="Index">Products</a>
+                    <i class="fas fa-chevron-right separator"></i>
+                    <span class="current">Photos</span>
+                </div>
+                <a asp-area="Admin" asp-controller="Products" asp-action="Edit" asp-route-id="@Model.ProductId" class="btn-admin-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Edit
+                </a>
             </div>
         </div>
 
-        <div class="row g-4 mt-2">
-            <!-- Upload Panel -->
+        <div class="row g-4 mt-1">
+            <!-- Upload -->
             <div class="col-lg-4">
-                <div class="admin-panel">
-                    <div class="admin-panel-header">
-                        <h3><i class="fas fa-cloud-upload-alt"></i> Upload Image</h3>
-                    </div>
-                    <div class="admin-panel-body">
-                        <form asp-area="Admin" asp-controller="Products" asp-action="UploadImage"
-                              method="post" enctype="multipart/form-data">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="productId" value="@Model.ProductId" />
-
-                            <div class="form-group-admin">
-                                <label class="form-label-admin">Select Image</label>
-                                <div class="file-upload-wrapper">
-                                    <input type="file" name="file" id="fileInput" accept="image/*" required
-                                           class="file-upload-input" onchange="showFileName(this)" />
-                                    <label for="fileInput" class="file-upload-label">
-                                        <i class="fas fa-cloud-upload-alt"></i>
-                                        <span id="fileName">Click to choose a file</span>
-                                        <small>JPG, PNG, GIF, or WebP (max 5MB)</small>
-                                    </label>
+                <div class="pi-sidebar">
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h3><i class="fas fa-cloud-upload-alt"></i> Add a Photo</h3>
+                        </div>
+                        <div class="admin-panel-body">
+                            @if (isFull)
+                            {
+                                <div class="pi-full">
+                                    <i class="fas fa-check-circle"></i>
+                                    <p class="mb-0">This product already has the maximum of <strong>@max photos</strong>. Delete one to add another.</p>
                                 </div>
-                            </div>
+                            }
+                            else
+                            {
+                                <form asp-area="Admin" asp-controller="Products" asp-action="UploadImage"
+                                      method="post" enctype="multipart/form-data" id="uploadForm">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="productId" value="@Model.ProductId" />
 
-                            <div class="form-group-admin">
-                                <div class="form-check-admin">
-                                    <input type="checkbox" name="isPrimary" value="true" id="isPrimary" class="form-check-input-admin" />
-                                    <label for="isPrimary" class="form-check-label-admin">
-                                        Set as Primary Image
-                                        <small>(Will be shown as the main product image)</small>
+                                    <label for="fileInput" class="pi-dropzone" id="dropzone">
+                                        <img id="pickedPreview" alt="" hidden />
+                                        <span class="pi-dropzone-empty" id="dropzoneEmpty">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <strong>Click or drag a photo here</strong>
+                                            <small>JPG, PNG, GIF or WEBP · max 5 MB</small>
+                                        </span>
                                     </label>
-                                </div>
-                            </div>
+                                    <input type="file" name="file" id="fileInput" accept=".jpg,.jpeg,.png,.gif,.webp,image/*"
+                                           class="visually-hidden" required />
+                                    <div class="pi-filename" id="fileName"></div>
 
-                            <button type="submit" class="btn-admin-primary w-100">
-                                <i class="fas fa-upload"></i> Upload Image
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                                    <div class="form-check-admin mt-3">
+                                        <input type="checkbox" name="isPrimary" value="true" id="isPrimary" class="form-check-input-admin"
+                                               @(hasPrimary ? "" : "checked") />
+                                        <label for="isPrimary" class="form-check-label-admin">
+                                            Make this the main photo
+                                            <small>Shown on product cards and first on the product page</small>
+                                        </label>
+                                    </div>
 
-                <div class="admin-panel mt-4">
-                    <div class="admin-panel-header">
-                        <h3><i class="fas fa-info-circle"></i> Guidelines</h3>
-                    </div>
-                    <div class="admin-panel-body">
-                        <div class="tip-item">
-                            <i class="fas fa-check-circle text-success"></i>
-                            <div>
-                                <strong>Image quality</strong>
-                                <p>Use high-quality images (1200x1200 recommended).</p>
+                                    <button type="submit" class="btn-admin-primary w-100 justify-content-center mt-3" id="uploadBtn" disabled>
+                                        <i class="fas fa-upload"></i> Upload Photo
+                                    </button>
+                                </form>
+                            }
+
+                            <div class="pi-count">
+                                <div class="pi-count-bar"><span style="width:@(Math.Min(100, count * 100 / max))%"></span></div>
+                                <small>@count of @max photos used</small>
                             </div>
                         </div>
-                        <div class="tip-item">
-                            <i class="fas fa-check-circle text-success"></i>
-                            <div>
-                                <strong>Primary image</strong>
-                                <p>Only one image can be primary at a time.</p>
-                            </div>
+                    </div>
+
+                    <div class="admin-panel">
+                        <div class="admin-panel-header">
+                            <h3><i class="fas fa-lightbulb"></i> Tips</h3>
                         </div>
-                        <div class="tip-item">
-                            <i class="fas fa-check-circle text-success"></i>
-                            <div>
-                                <strong>File size</strong>
-                                <p>Keep images under 5MB for faster loading.</p>
+                        <div class="admin-panel-body">
+                            <div class="tip-item">
+                                <i class="fas fa-star text-warning"></i>
+                                <div>
+                                    <strong>Main photo</strong>
+                                    <p>Only one photo is the main photo. Click "Set as main" on any other photo to change it.</p>
+                                </div>
+                            </div>
+                            <div class="tip-item">
+                                <i class="fas fa-expand text-success"></i>
+                                <div>
+                                    <strong>Square photos look best</strong>
+                                    <p>Around 1200×1200 px. Photos are cropped to a square on cards.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Images Grid -->
+            <!-- Current photos -->
             <div class="col-lg-8">
                 <div class="admin-panel">
-                    <div class="admin-panel-header">
+                    <div class="admin-panel-header d-flex justify-content-between align-items-center">
                         <h3>
-                            <i class="fas fa-photo-video"></i> Current Images
-                            <span class="badge-count ms-2">@Model.Images.Count</span>
+                            <i class="fas fa-photo-video"></i> Current Photos
+                            <span class="badge-count ms-2">@count</span>
                         </h3>
                     </div>
                     <div class="admin-panel-body">
                         @if (Model.Images.Any())
                         {
-                            <div class="images-grid">
+                            @if (!hasPrimary)
+                            {
+                                <div class="pi-warning">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    No main photo is set. The first photo is shown until you pick one.
+                                </div>
+                            }
+                            <div class="pi-grid">
                                 @foreach (var image in Model.Images)
                                 {
-                                    <div class="image-card @(image.IsPrimary ? "is-primary" : "")">
-                                        <div class="image-preview">
-                                            <img src="@apiBaseUrl@image.ImageUrl" alt="Product image" />
+                                    <div class="pi-card @(image.IsPrimary ? "is-primary" : "")">
+                                        <div class="pi-photo">
+                                            <img src="@image.ImageUrl" alt="@Model.ProductName photo" loading="lazy" />
                                             @if (image.IsPrimary)
                                             {
-                                                <span class="primary-badge">
-                                                    <i class="fas fa-star"></i> Primary
-                                                </span>
+                                                <span class="pi-main-badge"><i class="fas fa-star"></i> Main</span>
                                             }
                                         </div>
-                                        <div class="image-card-actions">
-                                            @if (!image.IsPrimary)
+                                        <div class="pi-actions">
+                                            @if (image.IsPrimary)
                                             {
-                                                <form asp-area="Admin" asp-controller="Products" asp-action="SetPrimaryImage"
-                                                      method="post" style="display: inline;">
+                                                <span class="pi-main-text"><i class="fas fa-check"></i> Main photo</span>
+                                            }
+                                            else
+                                            {
+                                                <form asp-area="Admin" asp-controller="Products" asp-action="SetPrimaryImage" method="post">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="productId" value="@Model.ProductId" />
                                                     <input type="hidden" name="imageId" value="@image.Id" />
-                                                    <button type="submit" class="image-action-btn btn-primary-soft" title="Set as Primary">
-                                                        <i class="fas fa-star"></i>
+                                                    <button type="submit" class="pi-btn pi-btn-main">
+                                                        <i class="far fa-star"></i> Set as main
                                                     </button>
                                                 </form>
                                             }
-                                            <form asp-area="Admin" asp-controller="Products" asp-action="DeleteImage"
-                                                  method="post" style="display: inline;"
-                                                  onsubmit="return confirm('Delete this image?');">
+                                            <form asp-area="Admin" asp-controller="Products" asp-action="DeleteImage" method="post"
+                                                  onsubmit="return confirm('Delete this photo?');">
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="imageId" value="@image.Id" />
                                                 <input type="hidden" name="productId" value="@Model.ProductId" />
-                                                <button type="submit" class="image-action-btn btn-danger-soft" title="Delete">
+                                                <button type="submit" class="pi-btn pi-btn-delete" title="Delete photo">
                                                     <i class="fas fa-trash-alt"></i>
                                                 </button>
                                             </form>
@@ -152,38 +175,156 @@
                         }
                         else
                         {
-                            <div class="empty-state-admin" style="padding: 50px 20px;">
-                                <div class="empty-state-icon">
-                                    <i class="fas fa-images"></i>
-                                </div>
-                                <h3>No images yet</h3>
-                                <p>Upload your first image using the panel on the left.</p>
+                            <div class="pi-empty">
+                                <i class="fas fa-images"></i>
+                                <h4>No photos yet</h4>
+                                <p>Add a photo using the panel on the left. Products without photos show a placeholder in the shop.</p>
                             </div>
                         }
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="form-actions-full mt-4">
-            <a asp-area="Admin" asp-controller="Products" asp-action="Edit" asp-route-id="@Model.ProductId" class="btn-admin-secondary">
-                <i class="fas fa-arrow-left"></i> Back to Edit
-            </a>
-            <a asp-area="Admin" asp-controller="Products" asp-action="Index" class="btn-admin-secondary">
-                <i class="fas fa-list"></i> All Products
-            </a>
-        </div>
     </div>
 </section>
 
+<style>
+    /* The global .admin-panel has height:100%, which stretches stacked panels on this page */
+    .product-images-page .admin-panel { height: auto; }
+
+    .pi-sidebar { display: flex; flex-direction: column; gap: 24px; position: sticky; top: 90px; }
+
+    .pi-dropzone {
+        display: flex; align-items: center; justify-content: center; width: 100%;
+        aspect-ratio: 4 / 3; margin: 0; overflow: hidden; cursor: pointer;
+        border: 2px dashed #D4A574; border-radius: 14px; background: #FFF9F0;
+        transition: all 0.2s ease;
+    }
+    .pi-dropzone:hover, .pi-dropzone.dragover { background: #FFF1DD; border-color: #8B4513; }
+    .pi-dropzone.has-file { border-style: solid; border-color: #8B4513; }
+    .pi-dropzone img { width: 100%; height: 100%; object-fit: cover; }
+    .pi-dropzone-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #8B4513; text-align: center; padding: 16px; }
+    .pi-dropzone-empty i { font-size: 2.4rem; }
+    .pi-dropzone-empty small { color: #8a7a6a; }
+    .pi-filename { font-size: 0.85rem; color: #8a7a6a; margin-top: 8px; word-break: break-all; }
+    .pi-filename:empty { display: none; }
+    .pi-filename.error { color: #DC3545; }
+
+    .pi-full { text-align: center; color: #6b5b4b; padding: 10px 0; }
+    .pi-full i { font-size: 2rem; color: #10B981; display: block; margin-bottom: 10px; }
+
+    .pi-count { margin-top: 18px; }
+    .pi-count-bar { height: 6px; background: #F0E6D9; border-radius: 3px; overflow: hidden; margin-bottom: 6px; }
+    .pi-count-bar span { display: block; height: 100%; background: #8B4513; }
+    .pi-count small { color: #8a7a6a; }
+
+    .pi-warning {
+        background: #FEF3C7; color: #92400E; border-radius: 10px;
+        padding: 10px 14px; margin-bottom: 18px; font-size: 0.9rem;
+    }
+
+    .pi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
+
+    .pi-card {
+        background: #fff; border: 2px solid #F0E6D9; border-radius: 14px; overflow: hidden;
+        display: flex; flex-direction: column; transition: box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .pi-card:hover { box-shadow: 0 6px 20px rgba(139, 69, 19, 0.12); }
+    .pi-card.is-primary { border-color: #8B4513; box-shadow: 0 0 0 3px rgba(139, 69, 19, 0.12); }
+
+    .pi-photo { position: relative; aspect-ratio: 1 / 1; background: #f7f3ee; }
+    .pi-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .pi-main-badge {
+        position: absolute; top: 10px; left: 10px; background: #8B4513; color: #fff;
+        font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 12px;
+        display: inline-flex; align-items: center; gap: 4px;
+    }
+
+    .pi-actions { display: flex; align-items: center; gap: 8px; padding: 10px; }
+    .pi-actions form { margin: 0; }
+    .pi-actions form:first-child, .pi-main-text { flex: 1; }
+    .pi-main-text { color: #8B4513; font-weight: 600; font-size: 0.85rem; padding-left: 4px; }
+
+    .pi-btn {
+        border: none; border-radius: 8px; height: 36px; font-size: 0.85rem; font-weight: 600;
+        display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+        cursor: pointer; transition: all 0.2s ease;
+    }
+    .pi-btn-main { width: 100%; background: #FFF3E0; color: #8B4513; }
+    .pi-btn-main:hover { background: #8B4513; color: #fff; }
+    .pi-btn-delete { width: 36px; background: #FEE2E2; color: #DC3545; }
+    .pi-btn-delete:hover { background: #DC3545; color: #fff; }
+
+    .pi-empty { text-align: center; padding: 50px 20px; color: #8a7a6a; }
+    .pi-empty i { font-size: 3rem; color: #D4A574; margin-bottom: 12px; }
+    .pi-empty h4 { color: #8B4513; }
+
+    @@media (max-width: 991px) {
+        .pi-sidebar { position: static; }
+    }
+</style>
+
 @section Scripts {
     <script>
-        function showFileName(input) {
+        (function () {
+            const input = document.getElementById('fileInput');
+            if (!input) return;
+
+            const ALLOWED = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+            const MAX_BYTES = @CreateProductVM.MaxImageBytes;
+            const dropzone = document.getElementById('dropzone');
+            const preview = document.getElementById('pickedPreview');
+            const empty = document.getElementById('dropzoneEmpty');
             const fileName = document.getElementById('fileName');
-            if (input.files && input.files[0]) {
-                fileName.textContent = input.files[0].name;
-                fileName.parentElement.classList.add('has-file');
+            const uploadBtn = document.getElementById('uploadBtn');
+            const form = document.getElementById('uploadForm');
+
+            function reset(message) {
+                input.value = '';
+                preview.hidden = true;
+                empty.hidden = false;
+                dropzone.classList.remove('has-file');
+                uploadBtn.disabled = true;
+                fileName.textContent = message || '';
+                fileName.classList.toggle('error', !!message);
             }
-        }
+
+            function show(file) {
+                const dot = file.name.lastIndexOf('.');
+                const ext = dot >= 0 ? file.name.slice(dot).toLowerCase() : '';
+                if (!ALLOWED.includes(ext)) return reset(`${file.name} is not a supported image.`);
+                if (file.size > MAX_BYTES) return reset(`${file.name} is larger than 5 MB.`);
+
+                preview.src = URL.createObjectURL(file);
+                preview.hidden = false;
+                empty.hidden = true;
+                dropzone.classList.add('has-file');
+                fileName.classList.remove('error');
+                fileName.textContent = file.name;
+                uploadBtn.disabled = false;
+            }
+
+            input.addEventListener('change', () => input.files[0] ? show(input.files[0]) : reset());
+
+            ['dragenter', 'dragover'].forEach(evt => dropzone.addEventListener(evt, e => {
+                e.preventDefault(); dropzone.classList.add('dragover');
+            }));
+            ['dragleave', 'drop'].forEach(evt => dropzone.addEventListener(evt, e => {
+                e.preventDefault(); dropzone.classList.remove('dragover');
+            }));
+            dropzone.addEventListener('drop', e => {
+                const file = e.dataTransfer.files[0];
+                if (!file) return;
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                input.files = dt.files;
+                show(file);
+            });
+
+            form.addEventListener('submit', () => {
+                uploadBtn.disabled = true;
+                uploadBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            });
+        })();
     </script>
 }

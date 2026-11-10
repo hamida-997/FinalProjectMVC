@@ -1,0 +1,78 @@
+@model ProductVM
+@* One product card, shared by the shop grid, the home page and "You May Also Like" *@
+@{
+    var image = Model.Images.FirstOrDefault(i => i.IsPrimary) ?? Model.Images.FirstOrDefault();
+    var inStock = Model.StockQuantity > 0;
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+
+<div class="product-card-modern @(inStock ? "" : "is-sold-out")">
+    <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.Id" class="product-card-image" aria-label="@Model.Name">
+        @if (image != null)
+        {
+            <img src="@image.ImageUrl" alt="@Model.Name" loading="lazy" />
+        }
+        else
+        {
+            <div class="product-placeholder">
+                <i class="fas fa-cookie-bite"></i>
+            </div>
+        }
+
+        <div class="product-badges">
+            @if (!inStock)
+            {
+                <span class="product-badge badge-sold-out">Sold Out</span>
+            }
+            else
+            {
+                @if ((DateTime.UtcNow - Model.CreatedAt).TotalDays <= 7)
+                {
+                    <span class="product-badge badge-new">New</span>
+                }
+                @if (Model.StockQuantity < 10)
+                {
+                    <span class="product-badge badge-low-stock">Only @Model.StockQuantity left</span>
+                }
+            }
+        </div>
+
+        <div class="product-card-overlay">
+            <span class="overlay-btn" title="View Details"><i class="fas fa-eye"></i></span>
+        </div>
+    </a>
+
+    <div class="product-card-body">
+        <span class="product-category-tag">@Model.CategoryName</span>
+        <h3 class="product-card-name">
+            <a asp-controller="Products" asp-action="Details" asp-route-id="@Model.Id">@Model.Name</a>
+        </h3>
+        <partial name="_CardRating" model="Model" />
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p class="product-card-desc">
+                @(Model.Description.Length > 70 ? Model.Description[..70].TrimEnd() + "…" : Model.Description)
+            </p>
+        }
+        <div class="product-card-footer">
+            <span class="product-card-price">$@Model.Price.ToString("F2")</span>
+            @if (inStock)
+            {
+                <form asp-controller="Cart" asp-action="AddToCart" method="post" style="margin: 0;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="productId" value="@Model.Id" />
+                    <input type="hidden" name="quantity" value="1" />
+                    <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    <button type="submit" class="btn-add-cart">
+                        <i class="fas fa-plus"></i>
+                        <span>Add</span>
+                    </button>
+                </form>
+            }
+            else
+            {
+                <span class="btn-add-cart is-disabled" aria-disabled="true">Sold out</span>
+            }
+        </div>
+    </div>
+</div>

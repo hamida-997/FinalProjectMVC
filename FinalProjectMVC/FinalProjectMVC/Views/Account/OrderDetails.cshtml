@@ -1,0 +1,176 @@
+@model OrderVM
+@using FinalProjectMVC.Controllers
+@{
+    ViewData["Title"] = $"Order #{Model.Id}";
+    var canCancel = AccountController.CanCancel(Model);
+}
+
+<!-- Breadcrumb -->
+<section class="breadcrumb-section">
+    <div class="container">
+        <nav class="breadcrumb-nav">
+            <a asp-controller="Home" asp-action="Index">
+                <i class="fas fa-home"></i> Home
+            </a>
+            <i class="fas fa-chevron-right separator"></i>
+            <a asp-action="Orders">My Orders</a>
+            <i class="fas fa-chevron-right separator"></i>
+            <span class="current">Order #@Model.Id</span>
+        </nav>
+    </div>
+</section>
+
+<section class="cart-section">
+    <div class="container">
+        <div class="cart-header">
+            <h1>Order #@Model.Id</h1>
+            <p>Placed on @Model.OrderDate.ToString("MMMM d, yyyy 'at' HH:mm")</p>
+        </div>
+
+        @if (ViewData["Error"] is string error)
+        {
+            <div class="account-alert"><i class="fas fa-exclamation-circle"></i> @error</div>
+        }
+
+        <div class="row g-4">
+            <!-- Items -->
+            <div class="col-lg-7">
+                <div class="account-card">
+                    <h3><i class="fas fa-box-open"></i> Items</h3>
+                    <table class="order-items-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th class="text-center">Qty</th>
+                                <th class="text-end">Price</th>
+                                <th class="text-end">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.OrderItems)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-controller="Products" asp-action="Details" asp-route-id="@item.ProductId">@item.ProductName</a>
+                                    </td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end">$@item.UnitPrice.ToString("F2")</td>
+                                    <td class="text-end">$@item.TotalPrice.ToString("F2")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    @if (Model.IsPaid && Model.OrderItems.Any())
+                    {
+                        <div class="review-hint mt-3">
+                            <i class="fas fa-star"></i>
+                            Enjoyed your order? Leave a review:
+                            @for (var i = 0; i < Model.OrderItems.Count; i++)
+                            {
+                                var item = Model.OrderItems[i];
+                                <a href="@Url.Action("Details", "Products", new { id = item.ProductId })#reviews" class="fw-semibold" style="color:#8B4513;">@item.ProductName</a>@(i < Model.OrderItems.Count - 1 ? ", " : "")
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="account-card">
+                    <h3><i class="fas fa-truck"></i> Delivery</h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="detail-label">Name</div>
+                            <div class="detail-value">@Model.CustomerName</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="detail-label">Phone</div>
+                            <div class="detail-value">@(string.IsNullOrEmpty(Model.CustomerPhone) ? "—" : Model.CustomerPhone)</div>
+                        </div>
+                    </div>
+                    <div class="detail-label">Address</div>
+                    <div class="detail-value">@Model.ShippingAddress</div>
+
+                    @if (Model.DeliveryDate.HasValue)
+                    {
+                        <div class="detail-label">Delivered</div>
+                        <div class="detail-value">@Model.DeliveryDate.Value.ToString("MMMM d, yyyy HH:mm")</div>
+                    }
+
+                    @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                    {
+                        <div class="detail-label">Notes</div>
+                        <div class="detail-value mb-0">@Model.Notes</div>
+                    }
+                </div>
+            </div>
+
+            <!-- Summary -->
+            <div class="col-lg-5">
+                <div class="order-summary">
+                    <h3>Summary</h3>
+
+                    <div class="summary-row">
+                        <span>Status</span>
+                        <span class="order-status order-status-@Model.Status.ToString().ToLower()">@Model.StatusName</span>
+                    </div>
+                    <div class="summary-row">
+                        <span>Payment</span>
+                        <span class="payment-badge payment-@Model.PaymentStatusName.ToLower()">
+                            <i class="fas @(Model.IsPaid ? "fa-check-circle" : "fa-clock")"></i>
+                            @Model.PaymentStatusName
+                        </span>
+                    </div>
+                    @if (Model.PaidAt.HasValue)
+                    {
+                        <div class="summary-row">
+                            <span>Paid on</span>
+                            <span>@Model.PaidAt.Value.ToString("MMM d, yyyy HH:mm")</span>
+                        </div>
+                    }
+
+                    <div class="summary-divider"></div>
+
+                    <div class="summary-row">
+                        <span>Subtotal</span>
+                        <span>$@Model.Subtotal.ToString("F2")</span>
+                    </div>
+                    @if (Model.HasDiscount)
+                    {
+                        <div class="summary-row discount-row">
+                            <span>Discount@(string.IsNullOrEmpty(Model.DiscountCode) ? "" : $" ({Model.DiscountCode})")</span>
+                            <span>−$@Model.DiscountAmount.ToString("F2")</span>
+                        </div>
+                    }
+                    <div class="summary-row summary-total">
+                        <span>Total</span>
+                        <span>$@Model.TotalAmount.ToString("F2")</span>
+                    </div>
+
+                    @if (canCancel)
+                    {
+                        <form asp-action="CancelOrder" asp-route-id="@Model.Id" method="post" class="mt-3"
+                              onsubmit="return confirm('Cancel order #@Model.Id? This cannot be undone.');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn-account-danger w-100 justify-content-center">
+                                <i class="fas fa-times-circle"></i> Cancel Order
+                            </button>
+                        </form>
+                    }
+                    else if (Model.Status != OrderStatus.Cancelled && Model.Status != OrderStatus.Delivered)
+                    {
+                        <p class="text-muted small mt-3 mb-0">
+                            <i class="fas fa-info-circle"></i>
+                            Need to change or cancel this order? Please contact us.
+                        </p>
+                    }
+
+                    <a asp-action="Orders" class="btn-account-outline w-100 justify-content-center mt-3">
+                        <i class="fas fa-arrow-left"></i> Back to My Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<partial name="_AccountStyles" />

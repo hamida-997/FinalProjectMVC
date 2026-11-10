@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
 
@@ -15,7 +16,7 @@ namespace FinalProjectMVC.Services
         public async Task<List<ProductImageVM>> GetImagesByProductAsync(int productId)
         {
             var images = await _apiService.GetAsync<List<ProductImageVM>>($"api/productimages/Product/{productId}");
-            return images ?? new List<ProductImageVM>();
+            return ImageUrlHelper.Normalize(images ?? new List<ProductImageVM>());
         }
 
         public async Task<ProductImageVM?> UploadImageAsync(int productId, IFormFile file, bool isPrimary)
@@ -27,7 +28,7 @@ namespace FinalProjectMVC.Services
             content.Add(new StringContent(productId.ToString()), "productId");
             content.Add(new StringContent(isPrimary.ToString().ToLower()), "isPrimary");
 
-            return await _apiService.PostFormAsync<ProductImageVM>("api/productimages/Upload", content);
+            return ImageUrlHelper.Normalize(await _apiService.PostFormAsync<ProductImageVM>("api/productimages/Upload", content));
         }
 
         public async Task<bool> SetPrimaryAsync(int productId, int imageId)

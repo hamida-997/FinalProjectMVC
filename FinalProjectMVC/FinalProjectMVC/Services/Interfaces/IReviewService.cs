@@ -6,6 +6,9 @@ namespace FinalProjectMVC.Services.Interfaces
     {
         Task<List<ReviewVM>> GetProductReviewsAsync(int productId);
 
+        // Public: recent 4-5 star reviews with a comment, for the home page
+        Task<List<ReviewVM>> GetFeaturedReviewsAsync(int count = 3);
+
         // Admin only: all reviews, optionally for one product
         Task<List<ReviewVM>> GetAllReviewsAsync(int? productId = null);
 

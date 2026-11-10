@@ -19,13 +19,19 @@ namespace FinalProjectMVC.ViewComponents
         {
             var currentUser = _authService.GetCurrentUser();
 
+            var isAuthenticated = _authService.IsAuthenticated();
+
             var model = new HeaderVM
             {
-                IsAuthenticated = _authService.IsAuthenticated(),
+                IsAuthenticated = isAuthenticated,
                 UserName = currentUser?.UserName,
                 FirstName = currentUser?.FirstName,
+                LastName = currentUser?.LastName,
                 Email = currentUser?.Email,
-                CartItemCount = _cartService.GetCartItemCount()
+                CartItemCount = _cartService.GetCartItemCount(),
+                // Role claims come from the auth cookie, the same check [Authorize(Roles=...)] uses
+                IsAdmin = isAuthenticated &&
+                    (UserClaimsPrincipal.IsInRole("Admin") || UserClaimsPrincipal.IsInRole("SuperAdmin"))
             };
 
             return View(model);

@@ -1,6 +1,8 @@
 @model List<UserVM>
 @{
     ViewData["Title"] = "Users Management";
+    var selectedRole = ViewBag.Role as string;
+    var isFiltered = !string.IsNullOrEmpty(ViewBag.Search as string) || !string.IsNullOrEmpty(selectedRole);
 }
 
 <section class="admin-page-section">
@@ -40,17 +42,23 @@
                         <label class="form-label"><i class="fas fa-user-tag"></i> Filter by Role</label>
                         <select name="role" class="form-control">
                             <option value="">All Roles</option>
-                            @foreach (var role in ViewBag.Roles as List<string>)
+                            @foreach (var role in ViewBag.Roles as List<string> ?? new List<string>())
                             {
-                                <option value="@role" selected="@(ViewBag.Role == role)">@role</option>
+                                <option value="@role" selected="@(selectedRole == role)">@role</option>
                             }
                         </select>
                     </div>
                 </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn-admin-primary w-100">
+                <div class="col-md-2 d-flex align-items-end gap-2">
+                    <button type="submit" class="btn-admin-primary flex-grow-1 justify-content-center">
                         <i class="fas fa-filter"></i> Filter
                     </button>
+                    @if (isFiltered)
+                    {
+                        <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn-admin-secondary" title="Clear filters">
+                            <i class="fas fa-times"></i>
+                        </a>
+                    }
                 </div>
             </form>
         </div>
@@ -59,8 +67,8 @@
         <div class="admin-table-wrapper mt-4">
             <div class="admin-table-header">
                 <h3>
-                    All Users
-                    <span class="badge-count">@Model.Count</span>
+                    @(isFiltered ? "Matching Users" : "All Users")
+                    <span class="badge-count">@(ViewData.GetPager()?.TotalItems ?? Model.Count)</span>
                 </h3>
             </div>
 
@@ -85,8 +93,8 @@
                                 <tr>
                                     <td>
                                         <div class="user-cell">
-                                            <div class="user-avatar">
-                                                <i class="fas fa-user"></i>
+                                            <div class="user-avatar-initial">
+                                                @((string.IsNullOrEmpty(user.FirstName) ? user.UserName : user.FirstName) is { Length: > 0 } n ? n[..1].ToUpper() : "?")
                                             </div>
                                             <div>
                                                 <div class="user-name">@user.FirstName @user.LastName</div>
@@ -156,6 +164,7 @@
                         </tbody>
                     </table>
                 </div>
+                <partial name="_Pagination" />
             }
             else
             {
@@ -165,7 +174,7 @@
                     </div>
                     <h3>No users found</h3>
                     <p>No users match your search criteria.</p>
-                    @if (!string.IsNullOrEmpty(ViewBag.Search as string) || !string.IsNullOrEmpty(ViewBag.Role as string))
+                    @if (isFiltered)
                     {
                         <a asp-area="Admin" asp-controller="Users" asp-action="Index" class="btn-admin-secondary">
                             <i class="fas fa-redo"></i> Clear Filters
@@ -177,82 +186,14 @@
     </div>
 </section>
 
+<partial name="_UserStyles" />
 <style>
-    .user-cell {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .user-avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 16px;
-    }
-
-    .user-name {
-        font-weight: 600;
-        color: #2d3748;
-    }
-
-    .user-username {
-        font-size: 0.85rem;
-        color: #718096;
-    }
-
-    .role-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-right: 4px;
-        margin-bottom: 4px;
-    }
-
-    .role-superadmin {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .role-admin {
-        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        color: white;
-    }
-
-    .role-customer {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
-    }
-
-    .action-key {
-        background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
-    }
-
-    .action-key:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(25, 84, 123, 0.3);
-    }
-
-    .action-toggle {
-        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-    }
-
-    .action-toggle:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(168, 237, 234, 0.3);
-    }
-
-    .admin-filters-section {
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    }
+    .user-cell { display: flex; align-items: center; gap: 12px; }
+    .user-name { font-weight: 600; color: var(--text-dark); }
+    .user-username { font-size: 0.85rem; color: var(--text-light); }
+    .action-key { background: #FFF8E1; color: #B45309; }
+    .action-key:hover { background: #B45309; color: #fff; }
+    .action-toggle { background: #ECFDF5; color: #047857; }
+    .action-toggle:hover { background: #047857; color: #fff; }
+    .admin-filters-section { background: #fff; padding: 20px; border-radius: 15px; box-shadow: var(--shadow); }
 </style>

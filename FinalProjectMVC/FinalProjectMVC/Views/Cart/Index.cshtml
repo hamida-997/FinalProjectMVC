@@ -58,7 +58,7 @@
                                     <div class="cart-item-image">
                                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                                         {
-                                            <img src="@item.ImageUrl" alt="@item.ProductName" />
+                                            <img src="@FinalProjectMVC.Helpers.ImageUrlHelper.Resolve(item.ImageUrl)" alt="@item.ProductName" />
                                         }
                                         else
                                         {

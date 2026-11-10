@@ -1,0 +1,199 @@
+@* Shared styles for My Profile / My Orders / Order Details *@
+<style>
+    .account-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(139, 69, 19, 0.08);
+        margin-bottom: 24px;
+    }
+
+    .account-card h3 {
+        font-size: 1.3rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .account-card input[readonly] { background: #f7f3ee; }
+
+    .account-alert {
+        background: #FEE2E2;
+        color: #991B1B;
+        border-radius: 10px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+    }
+
+    .account-nav {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 24px;
+        flex-wrap: wrap;
+    }
+
+    .account-nav a {
+        padding: 8px 18px;
+        border-radius: 999px;
+        border: 1px solid #e6d5c3;
+        color: #8B4513;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .account-nav a.active,
+    .account-nav a:hover {
+        background: #8B4513;
+        border-color: #8B4513;
+        color: #fff;
+    }
+
+    /* Profile summary */
+    .profile-summary { text-align: center; }
+
+    .profile-avatar {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #D2691E, #8B4513);
+        color: #fff;
+        font-size: 2.2rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+    }
+
+    .profile-summary h4 { font-weight: 700; margin-bottom: 4px; }
+
+    .profile-meta {
+        list-style: none;
+        padding: 0;
+        margin: 20px 0 0;
+        text-align: left;
+    }
+
+    .profile-meta li {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid #f1e7dc;
+        font-size: 0.95rem;
+    }
+
+    .profile-meta li:last-child { border-bottom: none; }
+    .profile-meta li span:first-child { color: #8a7a6a; }
+    .profile-meta li span:last-child { font-weight: 600; text-align: right; word-break: break-word; }
+
+    .btn-account {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #8B4513;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        padding: 10px 22px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-account:hover { background: #6d3510; color: #fff; }
+
+    .btn-account-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: transparent;
+        color: #8B4513;
+        border: 1px solid #8B4513;
+        border-radius: 10px;
+        padding: 8px 18px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .btn-account-outline:hover { background: #8B4513; color: #fff; }
+
+    .btn-account-danger {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        color: #DC3545;
+        border: 1px solid #DC3545;
+        border-radius: 10px;
+        padding: 10px 22px;
+        font-weight: 600;
+    }
+
+    .btn-account-danger:hover { background: #DC3545; color: #fff; }
+
+    /* Orders list */
+    .order-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 20px 24px;
+        box-shadow: 0 4px 20px rgba(139, 69, 19, 0.08);
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .order-card-main h5 { font-weight: 700; margin-bottom: 4px; }
+    .order-card-main small { color: #8a7a6a; }
+
+    .order-card-badges { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+    .order-card-total { font-size: 1.2rem; font-weight: 700; color: #8B4513; min-width: 90px; text-align: right; }
+
+    .account-pager .pager { padding: 8px 0 0; }
+
+    .orders-empty { text-align: center; padding: 60px 20px; }
+    .orders-empty i { font-size: 3.5rem; color: #D2691E; margin-bottom: 15px; }
+
+    /* Payment badges (same colours as the admin panel) */
+    .payment-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+    }
+
+    .payment-paid { background: #D1FAE5; color: #065F46; }
+    .payment-unpaid { background: #FEF3C7; color: #92400E; }
+    .payment-failed { background: #FEE2E2; color: #991B1B; }
+    .payment-refunded { background: #E0E7FF; color: #3730A3; }
+
+    /* Order details */
+    .order-items-table { width: 100%; }
+    .order-items-table th { color: #8a7a6a; font-weight: 600; font-size: 0.9rem; padding: 8px 0; border-bottom: 1px solid #f1e7dc; }
+    .order-items-table td { padding: 12px 0; border-bottom: 1px solid #f1e7dc; vertical-align: middle; }
+    .order-items-table tr:last-child td { border-bottom: none; }
+    .order-items-table a { color: #8B4513; font-weight: 600; text-decoration: none; }
+    .order-items-table a:hover { text-decoration: underline; }
+
+    .detail-label { color: #8a7a6a; font-size: 0.85rem; margin-bottom: 2px; }
+    .detail-value { font-weight: 600; margin-bottom: 14px; white-space: pre-line; }
+
+    .discount-row { color: #10B981; font-weight: 600; }
+
+    .review-hint {
+        background: #FFF8F0;
+        border: 1px dashed #D2691E;
+        border-radius: 10px;
+        padding: 12px 16px;
+        font-size: 0.9rem;
+        color: #6d3510;
+    }
+</style>

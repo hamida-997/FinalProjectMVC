@@ -23,19 +23,19 @@ namespace FinalProjectMVC.Services
             return await _apiService.GetAsync<CategoryVM>($"api/categories/{id}");
         }
 
-        public async Task<CategoryVM?> CreateCategoryAsync(CreateCategoryVM model)
+        public Task<ApiResult<CategoryVM>> CreateCategoryAsync(CreateCategoryVM model)
         {
-            return await _apiService.PostAsync<CategoryVM>("api/categories", model);
+            return _apiService.PostWithResultAsync<CategoryVM>("api/categories", model);
         }
 
-        public async Task<CategoryVM?> UpdateCategoryAsync(int id, UpdateCategoryVM model)
+        public Task<ApiResult<CategoryVM>> UpdateCategoryAsync(int id, UpdateCategoryVM model)
         {
-            return await _apiService.PutAsync<CategoryVM>($"api/categories/{id}", model);
+            return _apiService.PutWithResultAsync<CategoryVM>($"api/categories/{id}", model);
         }
 
-        public async Task<bool> DeleteCategoryAsync(int id)
+        public Task<ApiResult<object>> DeleteCategoryAsync(int id)
         {
-            return await _apiService.DeleteAsync($"api/categories/{id}");
+            return _apiService.DeleteWithResultAsync($"api/categories/{id}");
         }
     }
 }

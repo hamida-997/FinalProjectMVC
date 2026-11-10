@@ -1,3 +1,4 @@
+using FinalProjectMVC.Helpers;
 using FinalProjectMVC.Services.Interfaces;
 using FinalProjectMVC.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -18,7 +19,7 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             _authService = authService;
         }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1)
         {
             if (!HasAdminAccess())
             {
@@ -26,7 +27,7 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
             }
 
             var categories = await _categoryService.GetAllCategoriesAsync();
-            return View(categories);
+            return View(categories.Paginate(page, ViewData));
         }
 
         [HttpGet]
@@ -37,7 +38,8 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
                 return RedirectToLogin();
             }
 
-            return View();
+            // Pass a model so "Mark as active" starts checked (CreateCategoryVM.IsActive = true)
+            return View(new CreateCategoryVM());
         }
 
         [HttpPost]
@@ -56,13 +58,19 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _categoryService.CreateCategoryAsync(model);
 
-            if (result == null)
+            if (result.StatusCode is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden)
             {
-                ModelState.AddModelError(string.Empty, "Failed to create category. Please try again.");
+                return await SessionExpiredAsync();
+            }
+
+            if (!result.Success || result.Data == null)
+            {
+                // Shows the API's reason, e.g. "A category named 'Cakes' already exists."
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to create category. Please try again.");
                 return View(model);
             }
 
-            TempData["SuccessMessage"] = $"Category '{result.Name}' created successfully.";
+            TempData["SuccessMessage"] = $"Category '{result.Data.Name}' created successfully.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -108,13 +116,18 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _categoryService.UpdateCategoryAsync(model.Id, model);
 
-            if (result == null)
+            if (result.StatusCode is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden)
             {
-                ModelState.AddModelError(string.Empty, "Failed to update category. Please try again.");
+                return await SessionExpiredAsync();
+            }
+
+            if (!result.Success || result.Data == null)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Failed to update category. Please try again.");
                 return View(model);
             }
 
-            TempData["SuccessMessage"] = $"Category '{result.Name}' updated successfully.";
+            TempData["SuccessMessage"] = $"Category '{result.Data.Name}' updated successfully.";
             return RedirectToAction(nameof(Index));
         }
 
@@ -129,13 +142,19 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
 
             var result = await _categoryService.DeleteCategoryAsync(id);
 
-            if (result)
+            if (result.StatusCode is StatusCodes.Status401Unauthorized or StatusCodes.Status403Forbidden)
+            {
+                return await SessionExpiredAsync();
+            }
+
+            if (result.Success)
             {
                 TempData["SuccessMessage"] = "Category deleted successfully.";
             }
             else
             {
-                TempData["ErrorMessage"] = "Failed to delete category. It may still be in use.";
+                // e.g. "'Cakes' still has 3 products. Move or delete them first..."
+                TempData["ErrorMessage"] = result.ErrorMessage ?? "Failed to delete category.";
             }
 
             return RedirectToAction(nameof(Index));
@@ -156,6 +175,14 @@ namespace FinalProjectMVC.Areas.Admin.Controllers
         private IActionResult RedirectToLogin()
         {
             return RedirectToAction("Login", "Auth", new { area = "" });
+        }
+
+        // The API token (60 min) can expire while the MVC cookie is still valid
+        private async Task<IActionResult> SessionExpiredAsync()
+        {
+            await _authService.LogoutAsync();
+            TempData["ErrorMessage"] = "Your session has expired. Please log in again.";
+            return RedirectToAction("Login", "Auth", new { area = "", returnUrl = Url.Action("Index", "Categories", new { area = "Admin" }) });
         }
     }
 }

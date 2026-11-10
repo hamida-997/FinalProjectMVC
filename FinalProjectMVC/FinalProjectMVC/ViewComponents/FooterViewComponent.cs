@@ -19,12 +19,16 @@ namespace FinalProjectMVC.ViewComponents
 
             try
             {
-                var categories = await _categoryService.GetAllCategoriesAsync();
-                model.Categories = categories.Where(c => c.IsActive).Take(5).ToList();
+                var active = (await _categoryService.GetAllCategoriesAsync())
+                    .Where(c => c.IsActive)
+                    .OrderBy(c => c.Name)
+                    .ToList();
+                model.Categories = active.Take(FooterVM.MaxCategories).ToList();
+                model.HasMoreCategories = active.Count > FooterVM.MaxCategories;
             }
             catch
             {
-                // Silently fail - footer will show default categories
+                // The footer must never break a page; it just shows an "All products" link
             }
 
             return View(model);

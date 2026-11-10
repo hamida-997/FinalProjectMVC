@@ -1,0 +1,46 @@
+@model List<string>
+@{
+    // Model = the roles that are currently ticked
+    var roles = ViewBag.Roles as List<string> ?? new List<string>();
+    var roleErrors = ViewData.ModelState["Roles"]?.Errors;
+}
+
+@if (roles.Count == 0)
+{
+    <p class="text-danger mb-0"><i class="fas fa-exclamation-circle"></i> The role list could not be loaded. Please reload the page.</p>
+}
+else
+{
+    <div class="roles-container">
+        @foreach (var role in roles)
+        {
+            var id = $"role_{role}";
+            @* Plain name="Roles" (not Roles[0], Roles[1]...): with indexes, leaving the first box
+               unticked broke model binding and no roles were sent at all *@
+            <div class="form-check role-checkbox">
+                <input type="checkbox" class="form-check-input" name="Roles" value="@role" id="@id"
+                       @(Model.Contains(role) ? "checked" : "") />
+                <label class="form-check-label" for="@id">
+                    <span><span class="role-badge role-@role.ToLower()">@role</span></span>
+                    <span class="role-description">
+                        @(role switch
+                        {
+                            "SuperAdmin" => "Full system access with all privileges",
+                            "Admin" => "Manage products, orders, and users",
+                            "Customer" => "Browse products and place orders",
+                            _ => ""
+                        })
+                    </span>
+                </label>
+            </div>
+        }
+    </div>
+}
+
+@if (roleErrors != null)
+{
+    foreach (var error in roleErrors)
+    {
+        <span class="text-danger d-block mt-2">@error.ErrorMessage</span>
+    }
+}
