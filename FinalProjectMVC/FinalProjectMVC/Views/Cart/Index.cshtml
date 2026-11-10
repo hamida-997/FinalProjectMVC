@@ -178,10 +178,11 @@
                         <!-- Promo Code -->
                         <div class="promo-code-section">
                             <label>Have a promo code?</label>
-                            <div class="promo-input-wrapper">
-                                <input type="text" placeholder="Enter code" class="promo-input" />
-                                <button type="button" class="btn-apply">Apply</button>
-                            </div>
+                            @* Opens checkout with the code applied (log in first if needed) *@
+                            <form asp-controller="Checkout" asp-action="Index" method="get" class="promo-input-wrapper">
+                                <input type="text" name="code" placeholder="Enter code" class="promo-input" maxlength="50" required autocomplete="off" />
+                                <button type="submit" class="btn-apply">Apply</button>
+                            </form>
                         </div>
 
                         <a asp-controller="Checkout" asp-action="Index" class="btn-checkout text-decoration-none">

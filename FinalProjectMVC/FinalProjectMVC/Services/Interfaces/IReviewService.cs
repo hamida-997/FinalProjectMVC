@@ -6,6 +6,9 @@ namespace FinalProjectMVC.Services.Interfaces
     {
         Task<List<ReviewVM>> GetProductReviewsAsync(int productId);
 
+        // Admin only: all reviews, optionally for one product
+        Task<List<ReviewVM>> GetAllReviewsAsync(int? productId = null);
+
         // Null when the user isn't logged in or the check failed
         Task<ReviewEligibilityVM?> GetEligibilityAsync(int productId);
 

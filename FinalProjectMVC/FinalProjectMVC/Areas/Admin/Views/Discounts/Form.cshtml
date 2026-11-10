@@ -1,0 +1,174 @@
+@model SaveDiscountCodeVM
+@{
+    var isEdit = Model.Id > 0;
+    ViewData["Title"] = isEdit ? "Edit Discount Code" : "Create Discount Code";
+    var action = isEdit ? "Edit" : "Create";
+}
+
+<section class="admin-page-section">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-ticket-alt"></i> @ViewData["Title"]
+                </h1>
+                <p class="admin-page-subtitle">
+                    @(isEdit ? $"Editing {Model.Code}" : "Create a code customers can enter at checkout")
+                </p>
+            </div>
+            <div class="admin-breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right separator"></i>
+                <a asp-area="Admin" asp-controller="Discounts" asp-action="Index">Discounts</a>
+                <i class="fas fa-chevron-right separator"></i>
+                <span class="current">@(isEdit ? "Edit" : "Create")</span>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-lg-8">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h3><i class="fas fa-info-circle"></i> Code Details</h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        <form asp-area="Admin" asp-controller="Discounts" asp-action="@action" asp-route-id="@(isEdit ? Model.Id.ToString() : null)" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="Id" />
+                            <input type="hidden" asp-for="UsedCount" />
+
+                            @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+                            {
+                                <div class="alert-danger mb-3">
+                                    <i class="fas fa-exclamation-circle me-2"></i>
+                                    <div asp-validation-summary="ModelOnly"></div>
+                                </div>
+                            }
+
+                            <div class="row">
+                                <div class="col-md-6 form-group-admin">
+                                    <label asp-for="Code" class="form-label-admin"></label>
+                                    <input asp-for="Code" class="form-control-admin discount-code-input" placeholder="e.g. SWEET10" maxlength="50" />
+                                    <small class="text-muted">Saved in upper case. Letters, numbers, - and _ only.</small>
+                                    <span asp-validation-for="Code" class="text-danger d-block"></span>
+                                </div>
+                                <div class="col-md-6 form-group-admin">
+                                    <label asp-for="Description" class="form-label-admin"></label>
+                                    <input asp-for="Description" class="form-control-admin" placeholder="e.g. 10% off for newsletter subscribers" />
+                                    <span asp-validation-for="Description" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6 form-group-admin">
+                                    <label asp-for="Type" class="form-label-admin"></label>
+                                    <select asp-for="Type" asp-items="Html.GetEnumSelectList<DiscountTypeVM>()" class="form-control-admin" id="discountType"></select>
+                                </div>
+                                <div class="col-md-6 form-group-admin">
+                                    <label asp-for="Value" class="form-label-admin">
+                                        Value <span id="valueUnit">(@(Model.Type == DiscountTypeVM.Percentage ? "%" : "$"))</span>
+                                    </label>
+                                    <input asp-for="Value" type="number" step="0.01" min="0.01" class="form-control-admin" />
+                                    <span asp-validation-for="Value" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <h4 class="discount-section-title"><i class="fas fa-sliders-h"></i> Limits (leave empty for no limit)</h4>
+
+                            <div class="row">
+                                <div class="col-md-4 form-group-admin">
+                                    <label asp-for="MinOrderAmount" class="form-label-admin"></label>
+                                    <input asp-for="MinOrderAmount" type="number" step="0.01" min="0" class="form-control-admin" placeholder="No minimum" />
+                                    <span asp-validation-for="MinOrderAmount" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-4 form-group-admin">
+                                    <label asp-for="MaxUses" class="form-label-admin"></label>
+                                    <input asp-for="MaxUses" type="number" step="1" min="1" class="form-control-admin" placeholder="Unlimited" />
+                                    @if (isEdit)
+                                    {
+                                        <small class="text-muted">Used @Model.UsedCount time@(Model.UsedCount != 1 ? "s" : "") so far.</small>
+                                    }
+                                    <span asp-validation-for="MaxUses" class="text-danger d-block"></span>
+                                </div>
+                                <div class="col-md-4 form-group-admin">
+                                    <label asp-for="ExpiresAt" class="form-label-admin"></label>
+                                    <input asp-for="ExpiresAt" type="datetime-local" class="form-control-admin" />
+                                    <span asp-validation-for="ExpiresAt" class="text-danger"></span>
+                                </div>
+                            </div>
+
+                            <div class="form-group-admin">
+                                <div class="form-check-admin">
+                                    <input asp-for="IsActive" class="form-check-input-admin" />
+                                    <label asp-for="IsActive" class="form-check-label-admin">
+                                        Active
+                                        <small>(Inactive codes are rejected at checkout)</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <a asp-area="Admin" asp-controller="Discounts" asp-action="Index" class="btn-admin-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                                <button type="submit" class="btn-admin-primary">
+                                    <i class="fas fa-check"></i> @(isEdit ? "Save Changes" : "Create Code")
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="admin-panel">
+                    <div class="admin-panel-header">
+                        <h3><i class="fas fa-lightbulb"></i> How codes work</h3>
+                    </div>
+                    <div class="admin-panel-body">
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Checked at checkout</strong>
+                                <p>The server recalculates the discount from real prices. It never goes below $0.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Counted when paid</strong>
+                                <p>A use is counted only after Stripe confirms payment. Abandoned checkouts don't use up a code.</p>
+                            </div>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-check-circle text-success"></i>
+                            <div>
+                                <strong>Safe to delete</strong>
+                                <p>Past orders keep the code name and discount amount they were placed with.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    .discount-code-input { text-transform: uppercase; font-family: monospace; letter-spacing: 1px; }
+    .discount-section-title { font-size: 1rem; font-weight: 700; margin: 10px 0 15px; color: #6b5a4a; display: flex; gap: 8px; align-items: center; }
+</style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Show % or $ next to the value field depending on the chosen type
+        const typeSelect = document.getElementById('discountType');
+        const unit = document.getElementById('valueUnit');
+        typeSelect.addEventListener('change', () => {
+            unit.textContent = typeSelect.value === '0' ? '(%)' : '($)';
+        });
+    </script>
+}

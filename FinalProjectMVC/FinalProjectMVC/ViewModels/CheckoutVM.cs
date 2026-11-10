@@ -30,10 +30,31 @@ namespace FinalProjectMVC.ViewModels
         [Display(Name = "Order Notes (optional)")]
         public string? Notes { get; set; }
 
+        // Only the code text is posted; the API decides the discount amount
+        [StringLength(50, ErrorMessage = "Discount code cannot exceed 50 characters")]
+        [Display(Name = "Discount code")]
+        public string? DiscountCode { get; set; }
+
         // Display only: always reloaded from the session cart, never trusted from the form
         [ValidateNever]
         public List<CartItemVM> Items { get; set; } = new();
 
-        public decimal Subtotal => Items.Sum(i => i.Price * i.Quantity);
+        // Display only: set after the API accepts the code
+        [ValidateNever]
+        public DiscountPreviewVM? Discount { get; set; }
+
+        public decimal Subtotal => Discount?.Subtotal ?? Items.Sum(i => i.Price * i.Quantity);
+        public decimal Total => Discount?.Total ?? Subtotal;
+    }
+
+    // Matches the API's DiscountValidationResultDto
+    public class DiscountPreviewVM
+    {
+        public bool IsValid { get; set; }
+        public string? Message { get; set; }
+        public string? Code { get; set; }
+        public decimal Subtotal { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal Total { get; set; }
     }
 }

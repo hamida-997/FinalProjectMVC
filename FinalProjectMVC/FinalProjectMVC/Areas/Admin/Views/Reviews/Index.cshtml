@@ -1,0 +1,161 @@
+@model List<ReviewVM>
+@{
+    ViewData["Title"] = "Reviews";
+    int? selectedProduct = ViewBag.ProductId;
+    int? selectedRating = ViewBag.Rating;
+    var hasFilter = selectedProduct.HasValue || selectedRating.HasValue;
+}
+
+<section class="admin-page-section">
+    <div class="container-fluid">
+        <!-- Page Header -->
+        <div class="admin-page-header">
+            <div>
+                <h1 class="admin-page-title">
+                    <i class="fas fa-star"></i> Reviews
+                </h1>
+                <p class="admin-page-subtitle">Customer reviews from verified buyers</p>
+            </div>
+            <div class="admin-breadcrumb">
+                <i class="fas fa-home"></i>
+                <span>Admin</span>
+                <i class="fas fa-chevron-right separator"></i>
+                <span class="current">Reviews</span>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="review-filters mt-4">
+            <form method="get" class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label"><i class="fas fa-cookie-bite"></i> Product</label>
+                    <select name="productId" asp-items="ViewBag.Products" class="form-control">
+                        <option value="">All products</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label"><i class="fas fa-star"></i> Rating</label>
+                    <select name="rating" class="form-control">
+                        <option value="">All ratings</option>
+                        @for (var i = 5; i >= 1; i--)
+                        {
+                            <option value="@i" selected="@(selectedRating == i)">@i star@(i != 1 ? "s" : "")</option>
+                        }
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn-admin-primary w-100">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+                @if (hasFilter)
+                {
+                    <div class="col-md-2">
+                        <a asp-area="Admin" asp-controller="Reviews" asp-action="Index" class="btn-admin-secondary w-100 text-center">
+                            <i class="fas fa-redo"></i> Clear
+                        </a>
+                    </div>
+                }
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="admin-table-wrapper mt-4">
+            <div class="admin-table-header">
+                <h3>
+                    @(hasFilter ? "Filtered Reviews" : "All Reviews")
+                    <span class="badge-count">@Model.Count</span>
+                </h3>
+            </div>
+
+            @if (Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Reviewer</th>
+                                <th>Rating</th>
+                                <th>Comment</th>
+                                <th>Date</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var review in Model)
+                            {
+                                <tr>
+                                    <td>
+                                        <a asp-area="" asp-controller="Products" asp-action="Details" asp-route-id="@review.ProductId"
+                                           target="_blank" title="Open product page">
+                                            <strong>@review.ProductName</strong>
+                                        </a>
+                                    </td>
+                                    <td>@review.ReviewerName</td>
+                                    <td class="text-nowrap review-stars">
+                                        <partial name="_StarRating" model="(double)review.Rating" />
+                                    </td>
+                                    <td>
+                                        <span class="review-comment-cell">
+                                            @(string.IsNullOrEmpty(review.Comment) ? "—" : review.Comment)
+                                        </span>
+                                    </td>
+                                    <td class="text-nowrap">
+                                        @review.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy")
+                                        @if (review.UpdatedAt.HasValue)
+                                        {
+                                            <small class="d-block text-muted">edited</small>
+                                        }
+                                    </td>
+                                    <td class="text-end">
+                                        <form asp-area="Admin" asp-controller="Reviews" asp-action="Delete" method="post"
+                                              style="display:inline;" onsubmit="return confirm('Delete this review? This cannot be undone.');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@review.Id" />
+                                            <input type="hidden" name="productId" value="@selectedProduct" />
+                                            <input type="hidden" name="rating" value="@selectedRating" />
+                                            <button type="submit" class="action-btn action-delete" title="Delete">
+                                                <i class="fas fa-trash-alt"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state-admin">
+                    <div class="empty-state-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <h3>No reviews found</h3>
+                    <p>@(hasFilter ? "No reviews match these filters." : "Customers haven't reviewed any products yet.")</p>
+                </div>
+            }
+        </div>
+    </div>
+</section>
+
+<style>
+    .review-filters {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .review-stars .stars i {
+        color: #F5A623;
+    }
+
+    .review-comment-cell {
+        display: block;
+        max-width: 420px;
+        white-space: pre-line;
+        word-break: break-word;
+    }
+</style>

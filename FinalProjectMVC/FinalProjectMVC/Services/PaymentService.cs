@@ -22,6 +22,7 @@ namespace FinalProjectMVC.Services
                 customerPhone = model.CustomerPhone,
                 shippingAddress = model.ShippingAddress,
                 notes = model.Notes,
+                discountCode = string.IsNullOrWhiteSpace(model.DiscountCode) ? null : model.DiscountCode.Trim(),
                 orderItems = items.Select(i => new { productId = i.ProductId, quantity = i.Quantity })
             };
 

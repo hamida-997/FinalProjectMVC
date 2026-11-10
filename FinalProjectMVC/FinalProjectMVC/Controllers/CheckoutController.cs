@@ -12,17 +12,20 @@ namespace FinalProjectMVC.Controllers
         private readonly ICartService _cartService;
         private readonly IAuthService _authService;
         private readonly IPaymentService _paymentService;
+        private readonly IDiscountService _discountService;
 
-        public CheckoutController(ICartService cartService, IAuthService authService, IPaymentService paymentService)
+        public CheckoutController(ICartService cartService, IAuthService authService,
+            IPaymentService paymentService, IDiscountService discountService)
         {
             _cartService = cartService;
             _authService = authService;
             _paymentService = paymentService;
+            _discountService = discountService;
         }
 
-        // GET: /Checkout
+        // GET: /Checkout?code=SWEET10  (code is optional; the cart page's promo box sends it)
         [HttpGet]
-        public IActionResult Index()
+        public async Task<IActionResult> Index(string? code)
         {
             var items = _cartService.GetCartItems();
             if (!items.Any())
@@ -42,7 +45,56 @@ namespace FinalProjectMVC.Controllers
                 Items = items
             };
 
+            if (!string.IsNullOrWhiteSpace(code))
+            {
+                model.DiscountCode = code.Trim();
+                await LoadDiscountAsync(model);
+            }
+
             return View(model);
+        }
+
+        // POST: /Checkout/ApplyDiscount  (same form as PlaceOrder, so typed details are kept)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApplyDiscount(CheckoutVM model)
+        {
+            if (!PrepareModel(model))
+            {
+                return RedirectToAction("Index", "Cart");
+            }
+
+            // Don't show errors for delivery fields the customer hasn't finished yet
+            ModelState.Clear();
+
+            if (string.IsNullOrWhiteSpace(model.DiscountCode))
+            {
+                ModelState.AddModelError(nameof(model.DiscountCode), "Please enter a discount code.");
+            }
+            else
+            {
+                await LoadDiscountAsync(model);
+            }
+
+            return View("Index", model);
+        }
+
+        // POST: /Checkout/RemoveDiscount
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RemoveDiscount(CheckoutVM model)
+        {
+            if (!PrepareModel(model))
+            {
+                return RedirectToAction("Index", "Cart");
+            }
+
+            // Clearing ModelState also makes the code input render empty
+            ModelState.Clear();
+            model.DiscountCode = null;
+            model.Discount = null;
+
+            return View("Index", model);
         }
 
         // POST: /Checkout/PlaceOrder
@@ -50,23 +102,25 @@ namespace FinalProjectMVC.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PlaceOrder(CheckoutVM model)
         {
-            // Always use the server-side cart and account email, never values posted by the form
-            var items = _cartService.GetCartItems();
-            if (!items.Any())
+            if (!PrepareModel(model))
             {
-                TempData["ErrorMessage"] = "Your cart is empty.";
                 return RedirectToAction("Index", "Cart");
             }
 
-            model.Items = items;
-            model.CustomerEmail = _authService.GetCurrentUser()?.Email ?? string.Empty;
+            // Re-check the code so the summary shows the discounted total, and stop here
+            // with a clear message if it's no longer valid (e.g. expired since it was applied)
+            if (!string.IsNullOrWhiteSpace(model.DiscountCode))
+            {
+                await LoadDiscountAsync(model);
+            }
 
             if (!ModelState.IsValid)
             {
                 return View("Index", model);
             }
 
-            var result = await _paymentService.StartCheckoutAsync(model, items);
+            // The API validates the code again and sets the price; this preview is only for display
+            var result = await _paymentService.StartCheckoutAsync(model, model.Items);
 
             if (!result.Success || result.Data == null)
             {
@@ -137,6 +191,45 @@ namespace FinalProjectMVC.Controllers
         public IActionResult Cancel()
         {
             return View();
+        }
+
+        // Always use the server-side cart and account email, never values posted by the form.
+        // Returns false when the cart is empty.
+        private bool PrepareModel(CheckoutVM model)
+        {
+            var items = _cartService.GetCartItems();
+            if (!items.Any())
+            {
+                TempData["ErrorMessage"] = "Your cart is empty.";
+                return false;
+            }
+
+            model.Items = items;
+            model.CustomerEmail = _authService.GetCurrentUser()?.Email ?? string.Empty;
+            model.Discount = null;
+            return true;
+        }
+
+        // Asks the API what the code is worth for this cart. On failure, adds the reason
+        // as an error on the code field.
+        private async Task LoadDiscountAsync(CheckoutVM model)
+        {
+            var result = await _discountService.ValidateAsync(model.DiscountCode!.Trim(), model.Items);
+
+            if (!result.Success || result.Data == null)
+            {
+                ModelState.AddModelError(nameof(model.DiscountCode), result.ErrorMessage ?? "The discount code could not be checked.");
+                return;
+            }
+
+            if (!result.Data.IsValid)
+            {
+                ModelState.AddModelError(nameof(model.DiscountCode), result.Data.Message ?? "This discount code is not valid.");
+                return;
+            }
+
+            model.Discount = result.Data;
+            model.DiscountCode = result.Data.Code;
         }
     }
 }

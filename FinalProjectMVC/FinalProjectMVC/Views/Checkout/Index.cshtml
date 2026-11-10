@@ -28,6 +28,10 @@
         <form asp-controller="Checkout" asp-action="PlaceOrder" method="post" novalidate>
             @Html.AntiForgeryToken()
 
+            @* Pressing Enter in a field uses the first submit button in the form. This invisible
+               one makes that "Continue to Payment" instead of the discount Apply button. *@
+            <button type="submit" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;"></button>
+
             <div class="row g-4">
                 <!-- Delivery details -->
                 <div class="col-lg-7">
@@ -83,9 +87,50 @@
 
                         <div class="summary-divider"></div>
 
+                        <!-- Discount code -->
+                        <div class="checkout-discount">
+                            <label asp-for="DiscountCode" class="form-label"></label>
+                            @if (Model.Discount != null)
+                            {
+                                <input type="hidden" asp-for="DiscountCode" />
+                                <div class="discount-applied">
+                                    <span>
+                                        <i class="fas fa-ticket-alt"></i>
+                                        <strong>@Model.Discount.Code</strong> applied
+                                    </span>
+                                    <button type="submit" formaction="@Url.Action("RemoveDiscount", "Checkout")"
+                                            formnovalidate class="btn btn-link p-0 cancel">Remove</button>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="promo-input-wrapper">
+                                    <input asp-for="DiscountCode" id="discountCodeInput" class="promo-input" placeholder="Enter code" maxlength="50" autocomplete="off" />
+                                    <button type="submit" id="applyDiscountBtn" formaction="@Url.Action("ApplyDiscount", "Checkout")"
+                                            formnovalidate class="btn-apply cancel">Apply</button>
+                                </div>
+                                <span asp-validation-for="DiscountCode" class="text-danger small d-block mt-1"></span>
+                            }
+                        </div>
+
+                        <div class="summary-divider"></div>
+
+                        <div class="summary-row">
+                            <span>Subtotal</span>
+                            <span>$@Model.Subtotal.ToString("F2")</span>
+                        </div>
+
+                        @if (Model.Discount != null && Model.Discount.DiscountAmount > 0)
+                        {
+                            <div class="summary-row discount-row">
+                                <span>Discount (@Model.Discount.Code)</span>
+                                <span>−$@Model.Discount.DiscountAmount.ToString("F2")</span>
+                            </div>
+                        }
+
                         <div class="summary-row summary-total">
                             <span>Total to pay</span>
-                            <span>$@Model.Subtotal.ToString("F2")</span>
+                            <span>$@Model.Total.ToString("F2")</span>
                         </div>
 
                         <p class="checkout-note">
@@ -157,8 +202,36 @@
     .checkout-back-link:hover {
         text-decoration: underline;
     }
+
+    .checkout-discount .promo-input { text-transform: uppercase; }
+
+    .discount-applied {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #ECFDF5;
+        border: 1px dashed #10B981;
+        color: #065F46;
+        border-radius: 8px;
+        padding: 8px 12px;
+    }
+
+    .discount-row { color: #10B981; font-weight: 600; }
 </style>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Enter inside the code box should apply the code, not go to payment
+        const codeInput = document.getElementById('discountCodeInput');
+        const applyBtn = document.getElementById('applyDiscountBtn');
+        if (codeInput && applyBtn) {
+            codeInput.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    applyBtn.click();
+                }
+            });
+        }
+    </script>
 }

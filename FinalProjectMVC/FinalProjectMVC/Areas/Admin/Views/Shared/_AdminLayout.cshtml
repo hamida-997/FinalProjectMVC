@@ -59,6 +59,13 @@
                                 <span>Categories</span>
                             </a>
                         </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="Reviews" asp-action="Index"
+                               class="admin-nav-link @(currentController == "Reviews" ? "active" : "")">
+                                <i class="fas fa-star"></i>
+                                <span>Reviews</span>
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -70,6 +77,13 @@
                                class="admin-nav-link @(currentController == "Orders" ? "active" : "")">
                                 <i class="fas fa-shopping-bag"></i>
                                 <span>Orders</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a asp-area="Admin" asp-controller="Discounts" asp-action="Index"
+                               class="admin-nav-link @(currentController == "Discounts" ? "active" : "")">
+                                <i class="fas fa-ticket-alt"></i>
+                                <span>Discounts</span>
                             </a>
                         </li>
                     </ul>
